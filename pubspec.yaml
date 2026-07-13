@@ -1,0 +1,37 @@
+name: quickbill
+description: "QuickBill — A GST-compliant invoice generator for solo Indian freelancers. Offline-first, no backend, no auth."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  drift: ^2.16.0
+  sqlite3_flutter_libs: ^0.5.20
+  path_provider: ^2.1.3
+  path: ^1.9.0
+  pdf: ^3.10.8
+  printing: ^5.12.0
+  intl: ^0.19.0
+  uuid: ^4.4.0
+  flutter_slidable: ^3.1.1
+  share_plus: ^9.0.0
+  go_router: ^14.2.0
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.9
+  drift_dev: ^2.16.0
+  riverpod_generator: ^2.4.0
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
