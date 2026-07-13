@@ -8,6 +8,7 @@ import '../../../theme/app_theme.dart';
 import '../../../utils/gst_state_codes.dart';
 import '../../../utils/validators.dart';
 import '../../providers/business_profile_providers.dart';
+import '../../widgets/logo_picker.dart';
 
 /// First-launch onboarding screen. Captures the freelancer's own business
 /// profile and persists it as the single row in [BusinessProfiles].
@@ -37,6 +38,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
   final _upiId = TextEditingController();
 
   String? _stateCode;
+  String? _logoPath;
   bool _isGstRegistered = true;
   bool _saving = false;
 
@@ -87,6 +89,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
       bankAccountNumber: Value(_bankAccountNumber.text.trim().isEmpty ? null : _bankAccountNumber.text.trim()),
       bankIfsc: Value(_bankIfsc.text.trim().isEmpty ? null : _bankIfsc.text.trim().toUpperCase()),
       upiId: Value(_upiId.text.trim().isEmpty ? null : _upiId.text.trim()),
+      logoPath: Value(_logoPath),
       isGstRegistered: Value(_isGstRegistered),
     );
 
@@ -318,9 +321,11 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                   : const Text('Save & start invoicing'),
             ),
 
-            // Logo upload intentionally omitted for v1 — file picker requires
-            // an extra dep + permission flow. v2 idea: image_picker + crop.
-            // For now, logoPath stays null and the PDF omits the logo block.
+            const SizedBox(height: 28),
+            LogoPicker(
+              currentPath: _logoPath,
+              onChanged: (p) => setState(() => _logoPath = p),
+            ),
           ],
         ),
       ),

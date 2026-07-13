@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'presentation/providers/business_profile_providers.dart';
 import 'presentation/screens/clients/client_form_screen.dart';
@@ -11,6 +13,7 @@ import 'presentation/screens/invoices/invoice_list_screen.dart';
 import 'presentation/screens/invoices/invoice_preview_screen.dart';
 import 'presentation/screens/onboarding/business_setup_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/widgets/db_corruption_guard.dart';
 import 'theme/app_theme.dart';
 
 /// Routes that sit *inside* the bottom-nav shell (4 tabs).
@@ -191,6 +194,17 @@ class QuickBillApp extends ConsumerWidget {
       title: 'QuickBill',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('hi'),
+      ],
+      builder: (context, child) => DbCorruptionGuard(child: child ?? const SizedBox()),
       routerConfig: router,
     );
   }

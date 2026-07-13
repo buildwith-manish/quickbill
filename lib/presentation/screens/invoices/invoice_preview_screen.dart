@@ -174,6 +174,10 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
 
   Future<void> _markPaid(Invoice invoice) async {
     await ref.read(invoiceRepositoryProvider).setStatus(invoice.id, 'paid');
+    // Cancel any pending reminder — invoice is settled.
+    try {
+      await ref.read(reminderServiceProvider).cancelFor(invoice);
+    } catch (_) {}
     ref.invalidate(invoiceByIdProvider(invoice.id));
     ref.invalidate(invoiceListProvider);
   }

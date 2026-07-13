@@ -8,6 +8,11 @@ import '../../../theme/app_theme.dart';
 import '../../../utils/gst_state_codes.dart';
 import '../../../utils/validators.dart';
 import '../../providers/business_profile_providers.dart';
+import '../../providers/client_providers.dart';
+import '../../providers/database_provider.dart';
+import '../../providers/invoice_providers.dart';
+import '../../widgets/logo_picker.dart';
+import 'backup_section.dart';
 
 /// Settings — edit business profile (same fields as onboarding), app info.
 /// No login / account section (there is no account).
@@ -32,6 +37,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _upiId = TextEditingController();
 
   String? _stateCode;
+  String? _logoPath;
   bool _isGstRegistered = true;
   bool _loading = true;
   bool _saving = false;
@@ -55,6 +61,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _bankAccountNumber.text = p.bankAccountNumber ?? '';
       _bankIfsc.text = p.bankIfsc ?? '';
       _upiId.text = p.upiId ?? '';
+      _logoPath = p.logoPath;
       _stateCode = p.stateCode;
       _isGstRegistered = p.isGstRegistered;
     }
@@ -98,6 +105,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       bankAccountNumber: Value(_bankAccountNumber.text.trim().isEmpty ? null : _bankAccountNumber.text.trim()),
       bankIfsc: Value(_bankIfsc.text.trim().isEmpty ? null : _bankIfsc.text.trim().toUpperCase()),
       upiId: Value(_upiId.text.trim().isEmpty ? null : _upiId.text.trim()),
+      logoPath: Value(_logoPath),
       isGstRegistered: Value(_isGstRegistered),
     );
 
@@ -131,15 +139,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (ok != true) return;
 
-    // Delete business profile — the router will redirect to onboarding.
-    await ref.read(businessProfileControllerProvider.notifier).saveProfile(
-          const BusinessProfilesCompanion(
-            businessName: Value(''),
-            stateCode: Value('07'),
-          ),
-        );
-    // Note: for v1 we don't expose a "delete all" cascade; the user can
-    // reinstall the app to fully reset. v2 idea: a proper reset button.
+    // Cascade wipe across all 4 tables + seq counters, then refresh
+    // providers so the router redirects to onboarding.
+    await ref.read(businessProfileRepositoryProvider).wipeAll();
+    ref.invalidate(businessProfileControllerProvider);
+    ref.invalidate(clientListProvider);
+    ref.invalidate(invoiceListProvider);
+
     if (mounted) context.go('/onboarding');
   }
 
@@ -158,6 +164,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           children: [
+            LogoPicker(
+              currentPath: _logoPath,
+              onChanged: (p) => setState(() => _logoPath = p),
+            ),
+            const SizedBox(height: 16),
             _SectionLabel('Business name *'),
             TextFormField(
               controller: _businessName,
@@ -316,10 +327,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             const SizedBox(height: 32),
+            const BackupSection(),
+            const SizedBox(height: 32),
             _SectionHeader(
               icon: Icons.info_outline,
               title: 'About QuickBill',
-              subtitle: 'QuickBill v1.0.0 • Offline-first • No login, no cloud sync. '
+              subtitle: 'QuickBill v1.1.0 • Offline-first • No login, no cloud sync. '
                   'All data is stored on this device only.',
               colors: colors,
             ),
@@ -327,7 +340,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             TextButton.icon(
               onPressed: _confirmReset,
               icon: Icon(Icons.refresh, color: colors.danger),
-              label: Text('Reset to onboarding', style: TextStyle(color: colors.danger)),
+              label: Text('Reset all data', style: TextStyle(color: colors.danger)),
             ),
           ],
         ),

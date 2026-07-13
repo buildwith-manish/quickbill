@@ -9,6 +9,7 @@ import 'tables/business_profile_table.dart';
 import 'tables/clients_table.dart';
 import 'tables/invoice_items_table.dart';
 import 'tables/invoices_table.dart';
+import 'tables/seq_counters_table.dart';
 
 part 'database.g.dart';
 
@@ -23,6 +24,7 @@ part 'database.g.dart';
   Clients,
   Invoices,
   InvoiceItems,
+  SeqCounters,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_open());
@@ -30,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -38,13 +40,39 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          // v2+: chain `if (from < 2) await m.addColumn(...)` here.
-          // v1 has nothing to do — initial schema is created by onCreate.
+          if (from < 2) {
+            // v2: add indexes for FK columns and the seq_counters table.
+            await m.createTable(seqCounters);
+            await m.createIndex(Index(
+              'idx_invoices_client_id',
+              'CREATE INDEX idx_invoices_client_id ON invoices (client_id)',
+            ));
+            await m.createIndex(Index(
+              'idx_invoices_issue_date',
+              'CREATE INDEX idx_invoices_issue_date ON invoices (issue_date)',
+            ));
+            await m.createIndex(Index(
+              'idx_invoice_items_invoice_id',
+              'CREATE INDEX idx_invoice_items_invoice_id ON invoice_items (invoice_id)',
+            ));
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
       );
+
+  /// Wipe all data — used by Settings → "Reset all data". Cascades through
+  /// all 4 tables in the correct FK order.
+  Future<void> wipeAll() async {
+    await transaction(() async {
+      await customStatement('DELETE FROM invoice_items');
+      await customStatement('DELETE FROM invoices');
+      await customStatement('DELETE FROM clients');
+      await customStatement('DELETE FROM business_profiles');
+      await customStatement('DELETE FROM seq_counters');
+    });
+  }
 }
 
 LazyDatabase _open() {

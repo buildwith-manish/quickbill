@@ -32,4 +32,10 @@ class BusinessProfileRepository {
           ..where((t) => t.id.equals(_id)))
         .go();
   }
+
+  /// Wipes ALL data from the database (business profile + clients +
+  /// invoices + items + seq counters). Used by Settings → "Reset all data".
+  Future<void> wipeAll() async {
+    await _db.wipeAll();
+  }
 }

@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/database/database.dart';
 import '../../data/repositories/invoice_repository.dart';
 import '../../domain/services/invoice_number_service.dart';
+import '../../domain/services/reminder_service.dart';
 import 'database_provider.dart';
 
 part 'invoice_providers.g.dart';
@@ -14,7 +15,15 @@ InvoiceRepository invoiceRepository(InvoiceRepositoryRef ref) {
 
 @Riverpod(keepAlive: true)
 InvoiceNumberService invoiceNumberService(InvoiceNumberServiceRef ref) {
-  return InvoiceNumberService(ref.watch(invoiceRepositoryProvider));
+  return InvoiceNumberService(
+    ref.watch(appDatabaseProvider),
+    ref.watch(invoiceRepositoryProvider),
+  );
+}
+
+@Riverpod(keepAlive: true)
+ReminderService reminderService(ReminderServiceRef ref) {
+  return ReminderService(ref.watch(invoiceRepositoryProvider));
 }
 
 /// All invoices, newest first.

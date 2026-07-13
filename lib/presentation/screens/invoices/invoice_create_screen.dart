@@ -90,6 +90,27 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
     super.dispose();
   }
 
+  /// Removes a line item with an undo snackbar. Doesn't dispose the row's
+  /// controllers until the snackbar dismisses without being tapped — that
+  /// way an undo reuses the same controllers and the user's input survives.
+  void _removeItem(int index, _ItemRow row) {
+    setState(() => _items.removeAt(index));
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: const Text('Line item removed'),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _items.insert(index.clamp(0, _items.length), row);
+            });
+          },
+        ),
+      ));
+  }
+
   Future<void> _pickIssueDate() async {
     final d = await showDatePicker(
       context: context,
@@ -206,6 +227,12 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
       // After create, jump to the preview.
       if (mounted) {
         ref.invalidate(invoiceListProvider);
+        // Schedule a reminder 1 day before due date (if set).
+        if (saved.invoice.dueDate != null) {
+          try {
+            await ref.read(reminderServiceProvider).scheduleFor(saved.invoice);
+          } catch (_) {}
+        }
         setState(() => _saving = false);
         context.go('/invoices/${saved.invoice.id}/preview');
         return;
@@ -388,17 +415,14 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
               final i = entry.key;
               final row = entry.value;
               return _ItemCard(
-                key: ValueKey(row.hashCode),
+                key: row.key,
                 index: i,
                 row: row,
                 isUnregistered: isUnregistered,
                 gstRates: _gstRates,
                 onChanged: () => setState(() {}),
                 onRemove: _items.length > 1
-                    ? () => setState(() {
-                          row.dispose();
-                          _items.removeAt(i);
-                        })
+                    ? () => _removeItem(i, row)
                     : null,
               );
             }),
@@ -509,8 +533,13 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
 }
 
 class _ItemRow {
-  _ItemRow({this.id});
+  _ItemRow({this.id})
+      : key = UniqueKey();
 
+  /// Stable identity for the widget tree — survives removal of sibling rows.
+  final Key key;
+
+  /// Persisted id (null for newly-added items, present when editing).
   final String? id;
   final TextEditingController description = TextEditingController();
   final TextEditingController hsn = TextEditingController();

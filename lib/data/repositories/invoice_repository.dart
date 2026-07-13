@@ -30,6 +30,36 @@ class InvoiceRepository {
         .get();
   }
 
+  /// Paginated query for the invoice list screen.
+  ///
+  /// [limit] is the page size; [offset] is the number of rows already loaded.
+  /// [statusFilter] is null for "all", or one of draft/sent/paid.
+  Future<List<Invoice>> page({
+    int limit = 30,
+    int offset = 0,
+    String? statusFilter,
+  }) async {
+    final query = _db.select(_db.invoices)
+      ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+      ..limit(limit, offset: offset);
+    if (statusFilter != null) {
+      query.where((t) => t.status.equals(statusFilter));
+    }
+    return query.get();
+  }
+
+  /// Total invoice count, optionally filtered by status. Used by the list
+  /// screen to know when to stop fetching more pages.
+  Future<int> count({String? statusFilter}) async {
+    final countExpr = _db.invoices.id.count();
+    final query = _db.selectOnly(_db.invoices)..addColumns([countExpr]);
+    if (statusFilter != null) {
+      query.where(_db.invoices.status.equals(statusFilter));
+    }
+    final row = await query.getSingle();
+    return row.read(countExpr) ?? 0;
+  }
+
   Future<Invoice?> byId(String id) async {
     return (_db.select(_db.invoices)..where((t) => t.id.equals(id)))
         .getSingleOrNull();
@@ -100,6 +130,10 @@ class InvoiceRepository {
             ));
       }
 
+      // Bump the FY counter atomically with the invoice insert so a crash
+      // between the two can't leave the counter stale.
+      await _bumpCounterFor(invoiceNumber);
+
       final invoice = (await byId(id))!;
       final savedItems = await itemsFor(id);
       final client =
@@ -111,6 +145,27 @@ class InvoiceRepository {
         client: client,
       );
     });
+  }
+
+  /// Parses the seq out of an "INV/FY/####" number and bumps the FY counter
+  /// to at least that value. Safe to call with manually-overridden numbers.
+  Future<void> _bumpCounterFor(String invoiceNumber) async {
+    final parts = invoiceNumber.split('/');
+    if (parts.length != 3) return;
+    final fyLabel = parts[1];
+    final seq = int.tryParse(parts[2]);
+    if (seq == null) return;
+
+    final existing = await (_db.select(_db.seqCounters)
+          ..where((t) => t.key.equals(fyLabel)))
+        .getSingleOrNull();
+    final newSeq = (existing?.lastSeq ?? 0) > seq ? (existing?.lastSeq ?? 0) : seq;
+    await _db.into(_db.seqCounters).insertOnConflictUpdate(
+          SeqCountersCompanion.insert(
+            key: fyLabel,
+            lastSeq: Value(newSeq),
+          ),
+        );
   }
 
   /// Replaces an existing invoice + items (full rewrite).
@@ -164,6 +219,9 @@ class InvoiceRepository {
               lineTotal: Value(item.lineTotal),
             ));
       }
+
+      // Keep the FY counter in sync if the user changed the invoice number.
+      await _bumpCounterFor(invoiceNumber);
 
       final invoice = (await byId(id))!;
       final savedItems = await itemsFor(id);

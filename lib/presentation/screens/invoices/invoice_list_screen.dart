@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../data/database/database.dart';
 import '../../providers/client_providers.dart';
-import '../../providers/invoice_providers.dart';
+import '../../providers/invoice_list_provider.dart';
 import '../../widgets/empty_state.dart';
 
 /// Filter chips shown above the invoice list.
@@ -24,6 +24,19 @@ extension _InvoiceFilterLabel on _InvoiceFilter {
         return 'Paid';
     }
   }
+
+  String? get wireValue {
+    switch (this) {
+      case _InvoiceFilter.all:
+        return null;
+      case _InvoiceFilter.draft:
+        return 'draft';
+      case _InvoiceFilter.sent:
+        return 'sent';
+      case _InvoiceFilter.paid:
+        return 'paid';
+    }
+  }
 }
 
 class InvoiceListScreen extends ConsumerStatefulWidget {
@@ -35,10 +48,40 @@ class InvoiceListScreen extends ConsumerStatefulWidget {
 
 class _InvoiceListScreenState extends ConsumerState<InvoiceListScreen> {
   _InvoiceFilter _filter = _InvoiceFilter.all;
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Trigger the next page load when within 200px of the bottom.
+      final filter = _filter.wireValue;
+      ref
+          .read(paginatedInvoiceListProvider(filter: filter).notifier)
+          .loadMore();
+    }
+  }
+
+  void _changeFilter(_InvoiceFilter f) {
+    setState(() => _filter = f);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final invoicesAsync = ref.watch(invoiceListProvider);
+    final filter = _filter.wireValue;
+    final listAsync = ref.watch(paginatedInvoiceListProvider(filter: filter));
     final clientsAsync = ref.watch(clientListProvider);
     final fmt = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
     final dateFmt = DateFormat('dd MMM yyyy');
@@ -60,7 +103,7 @@ class _InvoiceListScreenState extends ConsumerState<InvoiceListScreen> {
                     child: FilterChip(
                       label: Text(f.label),
                       selected: selected,
-                      onSelected: (_) => setState(() => _filter = f),
+                      onSelected: (_) => _changeFilter(f),
                     ),
                   );
                 }).toList(),
@@ -68,48 +111,86 @@ class _InvoiceListScreenState extends ConsumerState<InvoiceListScreen> {
             ),
           ),
           Expanded(
-            child: invoicesAsync.when(
+            child: listAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Failed to load: $e')),
-              data: (invoices) => clientsAsync.when(
+              data: (listState) => clientsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Failed to load clients: $e')),
+                error: (e, _) =>
+                    Center(child: Text('Failed to load clients: $e')),
                 data: (clients) {
                   final byId = {for (final c in clients) c.id: c};
-                  final filtered = _filter == _InvoiceFilter.all
-                      ? invoices
-                      : invoices.where((i) => i.status == _filter.name).toList();
+                  final invoices = listState.items;
 
-                  if (filtered.isEmpty) {
+                  if (invoices.isEmpty && !listState.isLoading) {
                     return EmptyState(
                       icon: Icons.receipt_long_outlined,
                       title: 'No invoices yet',
                       message: _filter == _InvoiceFilter.all
                           ? 'Tap the + button below to create your first invoice. '
-                            'QuickBill handles CGST/SGST vs IGST automatically based on '
-                            'your state and the client\'s state.'
+                              'QuickBill handles CGST/SGST vs IGST automatically based on '
+                              'your state and the client\'s state.'
                           : 'No ${_filter.label.toLowerCase()} invoices right now.',
-                      actionLabel: _filter == _InvoiceFilter.all ? 'New invoice' : null,
+                      actionLabel:
+                          _filter == _InvoiceFilter.all ? 'New invoice' : null,
                       onAction: _filter == _InvoiceFilter.all
                           ? () => context.push('/invoices/new')
                           : null,
                     );
                   }
 
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 88),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (context, i) {
-                      final inv = filtered[i];
-                      final client = byId[inv.clientId];
-                      return _InvoiceRow(
-                        invoice: inv,
-                        clientName: client?.name ?? 'Unknown client',
-                        fmt: fmt,
-                        dateFmt: dateFmt,
-                      );
-                    },
+                  return RefreshIndicator(
+                    onRefresh: () => ref
+                        .read(paginatedInvoiceListProvider(filter: filter)
+                            .notifier)
+                        .refresh(),
+                    child: ListView.separated(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 88),
+                      itemCount: invoices.length + 1, // +1 for trailing loader
+                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                      itemBuilder: (context, i) {
+                        if (i == invoices.length) {
+                          // Trailing loader / end-of-list marker.
+                          if (listState.isLoading) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2)),
+                            );
+                          }
+                          if (!listState.hasMore) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
+                                child: Text(
+                                  '${invoices.length} invoices',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        }
+                        final inv = invoices[i];
+                        final client = byId[inv.clientId];
+                        return _InvoiceRow(
+                          invoice: inv,
+                          clientName: client?.name ?? 'Unknown client',
+                          fmt: fmt,
+                          dateFmt: dateFmt,
+                        );
+                      },
+                    ),
                   );
                 },
               ),
@@ -164,7 +245,8 @@ class _InvoiceRow extends StatelessWidget {
             Expanded(
               child: Text(
                 invoice.invoiceNumber,
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
             Container(
@@ -208,7 +290,8 @@ class _InvoiceRow extends StatelessWidget {
           padding: const EdgeInsets.only(left: 12),
           child: Text(
             fmt.format(invoice.totalAmount),
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
       ),
