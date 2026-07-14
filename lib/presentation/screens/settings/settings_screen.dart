@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -335,6 +336,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               subtitle: 'QuickBill v1.1.0 • Offline-first • No login, no cloud sync. '
                   'All data is stored on this device only.',
               colors: colors,
+            ),
+            const SizedBox(height: 16),
+            // Disclaimer — required because the app performs GST calculations
+            // that affect users' legal/tax compliance. Surfaced in settings
+            // (always visible) and once during onboarding (non-blocking banner).
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.warning.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.warning.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.gavel_outlined, size: 16, color: colors.warning),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppLocalizations.of(context)!.disclaimerTitle,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colors.warning,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    AppLocalizations.of(context)!.disclaimerFull,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             TextButton.icon(

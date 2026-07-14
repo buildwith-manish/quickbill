@@ -7,6 +7,11 @@
       be added then. For now, ship without it.)
     -->
 
+    <!-- Required by flutter_local_notifications on Android 13+ (API 33+) to
+         show due-date reminders and the daily overdue check. Requested at
+         runtime from the onboarding screen after the profile is saved. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:label="QuickBill"
         android:name="${applicationName}"

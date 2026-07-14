@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../data/database/database.dart';
+import '../../../domain/services/backup_nudge_service.dart';
 import '../../providers/business_profile_providers.dart';
 import '../../providers/invoice_providers.dart';
 import '../../widgets/empty_state.dart';
@@ -13,6 +14,9 @@ import '../../widgets/empty_state.dart';
 /// Stats are computed from the live invoice list (no extra query / index):
 ///   - Total invoiced this month
 ///   - Total outstanding (sent + draft, i.e. unpaid)
+///
+/// Also shows a dismissible backup-nudge banner when the user has enough
+/// data to risk losing but hasn't backed up recently.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -55,15 +59,53 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends StatefulWidget {
   const _Body({required this.businessName, required this.invoices});
 
   final String businessName;
   final List<Invoice> invoices;
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  /// Per-session dismissal flag. Resets when the app process restarts, so
+  /// the banner can resurface the next day if the user still hasn't backed
+  /// up. We do NOT persist this — persistent dismissal would defeat the
+  /// data-loss-mitigation goal.
+  bool _nudgeDismissed = false;
+
+  /// Cached result of [BackupNudgeService.shouldNudge] — null while loading.
+  bool? _shouldNudge;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkNudge();
+  }
+
+  @override
+  void didUpdateWidget(_Body oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-check when the invoice list changes (e.g. user creates an invoice
+    // from another tab and returns home).
+    if (oldWidget.invoices.length != widget.invoices.length) {
+      _checkNudge();
+    }
+  }
+
+  Future<void> _checkNudge() async {
+    final result = await BackupNudgeService.shouldNudge(
+      currentInvoiceCount: widget.invoices.length,
+    );
+    if (mounted) setState(() => _shouldNudge = result);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final invoices = widget.invoices;
     final monthInvoices = invoices.where((i) =>
         i.issueDate.year == now.year && i.issueDate.month == now.month).toList();
     final monthTotal = monthInvoices.fold<double>(0, (s, i) => s + i.totalAmount);
@@ -73,16 +115,25 @@ class _Body extends StatelessWidget {
     final recent = invoices.take(5).toList();
     final fmt = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
 
+    final showNudge = _shouldNudge == true && !_nudgeDismissed;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
       children: [
-        if (businessName.isNotEmpty)
+        if (widget.businessName.isNotEmpty)
           Text(
-            'Hi, $businessName',
+            'Hi, ${widget.businessName}',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
+        if (showNudge) ...[
+          const SizedBox(height: 8),
+          _BackupNudgeBanner(
+            onDismiss: () => setState(() => _nudgeDismissed = true),
+            onAction: () => context.go('/settings'),
+          ),
+        ],
         const SizedBox(height: 16),
         Row(
           children: [
@@ -133,6 +184,71 @@ class _Body extends StatelessWidget {
         else
           ...recent.map((i) => _InvoiceTile(invoice: i)),
       ],
+    );
+  }
+}
+
+/// Dismissible banner prompting the user to back up their data.
+/// Navigates to Settings (where the Backup & Restore section lives) on tap.
+class _BackupNudgeBanner extends StatelessWidget {
+  const _BackupNudgeBanner({
+    required this.onDismiss,
+    required this.onAction,
+  });
+
+  final VoidCallback onDismiss;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.cloud_upload_outlined, size: 18, color: Colors.orange),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Back up your data — it\'s stored only on this device.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: onAction,
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('Back up now'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16),
+            onPressed: onDismiss,
+            tooltip: 'Dismiss',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+          ),
+        ],
+      ),
     );
   }
 }

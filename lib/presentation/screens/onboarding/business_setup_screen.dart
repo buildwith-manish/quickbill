@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/database/database.dart';
+import '../../../domain/services/reminder_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../../utils/gst_state_codes.dart';
 import '../../../utils/validators.dart';
@@ -40,6 +44,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
   String? _stateCode;
   String? _logoPath;
   bool _isGstRegistered = true;
+  bool _disclaimerDismissed = false;
   bool _saving = false;
 
   @override
@@ -95,6 +100,13 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
 
     await ref.read(businessProfileControllerProvider.notifier).saveProfile(companion);
 
+    // Request notification permission now that onboarding is complete.
+    // Fire-and-forget — denial is non-fatal and never blocks the user.
+    // We ask here (not on cold start) so the user has context for the
+    // request: they've just set up their business and understand why
+    // QuickBill wants to send due-date reminders.
+    unawaited(ReminderService.requestPermissions());
+
     if (mounted) {
       setState(() => _saving = false);
       context.go('/home');
@@ -126,7 +138,18 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Non-blocking disclaimer banner — dismissible, shown once during
+            // onboarding. The full disclaimer lives in Settings.
+            if (!_disclaimerDismissed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _DisclaimerBanner(
+                  onDismiss: () => setState(() => _disclaimerDismissed = true),
+                ),
+              ),
+            const SizedBox(height: 8),
 
             // Required: business name
             _SectionLabel('Business name *'),
@@ -400,6 +423,72 @@ class _SectionHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Dismissible, non-blocking disclaimer banner shown once during onboarding.
+/// Tapping the "Got it" button hides it for the rest of the onboarding flow.
+/// The full disclaimer text is always available in Settings → About.
+class _DisclaimerBanner extends StatelessWidget {
+  const _DisclaimerBanner({required this.onDismiss});
+
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = appColors(context);
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: colors.warning.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.warning.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 16, color: colors.warning),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.disclaimerTitle,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.warning,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.disclaimerShort,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: onDismiss,
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(l10n.gotIt),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

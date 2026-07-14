@@ -30,6 +30,7 @@ dependencies:
   flutter_local_notifications: ^17.2.2
   file_picker: ^8.0.7
   timezone: ^0.9.4
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -38,6 +39,17 @@ dev_dependencies:
   drift_dev: ^2.16.0
   riverpod_generator: ^2.4.0
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  # NOTE: icon.png and icon_foreground.png are PLACEHOLDER assets generated
+  # programmatically (saffron "Q" monogram on white). Replace with a real
+  # designed icon before Play Store submission.
 
 flutter:
   uses-material-design: true

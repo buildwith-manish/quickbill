@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/database/database.dart';
+import 'backup_nudge_service.dart';
 
 /// Export / import the app's SQLite database file.
 ///
@@ -26,6 +27,8 @@ class BackupService {
   /// if the export failed.
   ///
   /// Also opens the native share sheet so the user can send the file.
+  /// On success, records the backup timestamp + invoice count via
+  /// [BackupNudgeService] so the home-screen nudge banner can stop showing.
   Future<String?> exportAndShare() async {
     try {
       // Force any in-flight writes to disk.
@@ -51,6 +54,19 @@ class BackupService {
         [XFile(destPath)],
         text: 'QuickBill backup $stamp',
       );
+
+      // Record the backup so the nudge banner stops showing. Count invoices
+      // via a lightweight raw query (avoids pulling the full repo dependency
+      // into this service).
+      final countResult = await _db.customSelect(
+        'SELECT COUNT(*) AS c FROM invoices',
+      ).getSingle();
+      final invoiceCount = countResult.read<int>('c');
+      await BackupNudgeService.recordBackup(
+        when: now,
+        invoiceCount: invoiceCount,
+      );
+
       return destPath;
     } catch (_) {
       return null;
