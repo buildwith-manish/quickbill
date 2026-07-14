@@ -99,7 +99,6 @@ class PdfService {
   /// Classic template header band — a colored strip with the business name
   /// + document title, repeated on every page by MultiPage's header callback.
   pw.Widget _buildClassicHeaderBand(PdfInvoiceData data, pw.Context ctx) {
-    final isUnregistered = !(data.business.isGstRegistered);
     final title = _documentTitle(data);
     return pw.Container(
       width: double.infinity,
