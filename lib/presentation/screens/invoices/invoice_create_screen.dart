@@ -35,9 +35,18 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
 
   final _invoiceNumber = TextEditingController();
   final _notes = TextEditingController();
+  final _discountController = TextEditingController();
+  final _amountPaidController = TextEditingController();
 
   final List<_ItemRow> _items = [];
   String? _placeOfSupplyOverride;
+
+  /// v3: discount state — 'flat' (₹) or 'percent' (%).
+  String _discountType = 'flat';
+
+  /// v3: quotation toggle. When true, saves with documentType='quotation'
+  /// and uses the QTN/ number prefix.
+  bool _isQuotation = false;
 
   bool _loading = true;
   bool _saving = false;
@@ -72,6 +81,15 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
     _notes.text = inv.notes ?? '';
     _placeOfSupplyOverride = inv.placeOfSupply;
     _clientId = inv.clientId;
+    _discountType = inv.discountType;
+    if (inv.discountValue > 0) {
+      _discountController.text = inv.discountValue.toStringAsFixed(
+          inv.discountType == 'percent' ? 0 : 2);
+    }
+    if (inv.amountPaid > 0) {
+      _amountPaidController.text = inv.amountPaid.toStringAsFixed(2);
+    }
+    _isQuotation = inv.documentType == 'quotation';
     final items = await repo.itemsFor(inv.id);
     _items
       ..clear()
@@ -84,6 +102,8 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
   void dispose() {
     _invoiceNumber.dispose();
     _notes.dispose();
+    _discountController.dispose();
+    _amountPaidController.dispose();
     for (final r in _items) {
       r.dispose();
     }
@@ -150,9 +170,10 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
     setState(() => _saving = true);
 
     try {
-      // Pre-fill invoice number if empty.
+      // Pre-fill invoice number if empty — use QTN/ prefix for quotations.
       if (_invoiceNumber.text.trim().isEmpty) {
-        final next = await ref.read(invoiceNumberServiceProvider).nextNumber();
+        final prefix = _isQuotation ? 'QTN' : 'INV';
+        final next = await ref.read(invoiceNumberServiceProvider).nextNumber(prefix: prefix);
         _invoiceNumber.text = next;
       }
 
@@ -188,11 +209,32 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
               .toList()
           : inputs;
 
+      // v3: build discount input from the form state.
+      final discountValue = double.tryParse(_discountController.text) ?? 0;
+      final discount = discountValue > 0
+          ? DiscountInput(
+              type: _discountType == 'percent'
+                  ? DiscountType.percent
+                  : DiscountType.flat,
+              value: discountValue,
+            )
+          : null;
+
       final calc = calculateInvoiceGst(
         items: effectiveInputs,
         sellerStateCode: sellerState,
         placeOfSupplyStateCode: placeOfSupply,
+        discount: discount,
       );
+
+      // v3: amount paid — supports partial payment tracking.
+      final amountPaid = double.tryParse(_amountPaidController.text) ?? 0;
+      // Auto-derive status from payment: if fully paid, override to 'paid'.
+      final effectiveStatus = amountPaid >= calc.total && amountPaid > 0
+          ? 'paid'
+          : (amountPaid > 0 ? 'partially_paid' : status);
+
+      final documentType = _isQuotation ? 'quotation' : 'invoice';
 
       final repo = ref.read(invoiceRepositoryProvider);
       if (_isEdit) {
@@ -202,7 +244,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
           clientId: _clientId!,
           issueDate: _issueDate,
           dueDate: _dueDate,
-          status: status,
+          status: effectiveStatus,
           notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           placeOfSupply: placeOfSupply,
           subtotal: calc.subtotal,
@@ -211,6 +253,11 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
           igstAmount: calc.igst,
           totalAmount: calc.total,
           items: effectiveInputs,
+          discountType: _discountType,
+          discountValue: discountValue,
+          discountAmount: calc.discountAmount,
+          amountPaid: amountPaid,
+          documentType: documentType,
         );
       } else {
         final saved = await repo.create(
@@ -218,7 +265,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
           clientId: _clientId!,
           issueDate: _issueDate,
           dueDate: _dueDate,
-          status: status,
+          status: effectiveStatus,
           notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           placeOfSupply: placeOfSupply,
           subtotal: calc.subtotal,
@@ -227,12 +274,17 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
           igstAmount: calc.igst,
           totalAmount: calc.total,
           items: effectiveInputs,
+          discountType: _discountType,
+          discountValue: discountValue,
+          discountAmount: calc.discountAmount,
+          amountPaid: amountPaid,
+          documentType: documentType,
         );
         // After create, jump to the preview.
         if (mounted) {
           ref.invalidate(invoiceListProvider);
-          // Schedule a reminder 1 day before due date (if set).
-          if (saved.invoice.dueDate != null) {
+          // Schedule a reminder 1 day before due date (if set, invoices only).
+          if (saved.invoice.dueDate != null && !_isQuotation) {
             try {
               await ref
                   .read(reminderServiceProvider)
@@ -316,10 +368,13 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
       placeOfSupply: placeOfSupply,
       isUnregistered: isUnregistered,
     );
+    final amountPaid = double.tryParse(_amountPaidController.text) ?? 0;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Edit invoice' : 'New invoice'),
+        title: Text(_isEdit
+            ? (_isQuotation ? 'Edit quotation' : 'Edit invoice')
+            : (_isQuotation ? 'New quotation' : 'New invoice')),
         actions: [
           TextButton(
             onPressed: _saving ? null : () => _save(status: 'draft'),
@@ -332,6 +387,77 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
           children: [
+            // ---- Quotation / Invoice toggle
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isQuotation = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: !_isQuotation
+                                ? theme.colorScheme.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Invoice',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: !_isQuotation
+                                  ? Colors.white
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isQuotation = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _isQuotation
+                                ? theme.colorScheme.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Quotation',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: _isQuotation
+                                  ? Colors.white
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_isQuotation)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+                child: Text(
+                  'Quotations use a QTN/ number prefix. Convert to an invoice '
+                  'later from the preview screen.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+
             // ---- Client + dates block
             Card(
               child: Padding(
@@ -454,6 +580,99 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
             ),
             const SizedBox(height: 16),
 
+            // ---- Discount + Payment card
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Discount (optional)',
+                        style: theme.textTheme.labelMedium
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _discountController,
+                            keyboardType:
+                                const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: (_) => setState(() {}),
+                            decoration: const InputDecoration(
+                              labelText: 'Value',
+                              isDense: true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: DropdownButtonFormField<String>(
+                            value: _discountType,
+                            decoration: const InputDecoration(
+                              labelText: 'Type',
+                              isDense: true,
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 'flat', child: Text('Flat ₹')),
+                              DropdownMenuItem(
+                                  value: 'percent', child: Text('Percent %')),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) setState(() => _discountType = v);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (calc.discountAmount > 0) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Discount amount: ₹${calc.discountAmount.toStringAsFixed(2)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+
+                    // Payment tracking — only for invoices, not quotations.
+                    if (!_isQuotation) ...[
+                      Text('Payment received (optional)',
+                          style: theme.textTheme.labelMedium
+                              ?.copyWith(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _amountPaidController,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (_) => setState(() {}),
+                        decoration: const InputDecoration(
+                          labelText: 'Amount paid',
+                          prefixText: '₹ ',
+                          isDense: true,
+                          helperText: 'Leave empty if not yet paid',
+                        ),
+                      ),
+                      if (amountPaid > 0 && amountPaid < calc.total) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Balance due: ₹${(calc.total - amountPaid).toStringAsFixed(2)}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // ---- Notes
             TextFormField(
               controller: _notes,
@@ -505,7 +724,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: _saving ? null : () => _save(status: 'draft'),
-                  child: const Text('Save as draft'),
+                  child: Text(_isQuotation ? 'Save draft' : 'Save as draft'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -519,7 +738,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Save & mark sent'),
+                      : Text(_isQuotation ? 'Save & send' : 'Save & mark sent'),
                 ),
               ),
             ],
@@ -543,10 +762,23 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
               gstRatePercent: isUnregistered ? 0 : r.gstRate,
             ))
         .toList();
+
+    // v3: build discount from form state for live preview.
+    final discountValue = double.tryParse(_discountController.text) ?? 0;
+    final discount = discountValue > 0
+        ? DiscountInput(
+            type: _discountType == 'percent'
+                ? DiscountType.percent
+                : DiscountType.flat,
+            value: discountValue,
+          )
+        : null;
+
     return calculateInvoiceGst(
       items: inputs,
       sellerStateCode: sellerState,
       placeOfSupplyStateCode: placeOfSupply,
+      discount: discount,
     );
   }
 }

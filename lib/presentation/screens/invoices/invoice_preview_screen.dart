@@ -99,25 +99,43 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
             : SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _busy ? null : () => _share(inv),
-                          icon: const Icon(Icons.share),
-                          label: const Text('Share PDF'),
+                      // WhatsApp reminder button — only for overdue invoices.
+                      if (_isOverdue(inv) && inv.status != 'paid')
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _sendWhatsAppReminder(inv),
+                              icon: const Icon(Icons.chat_outlined),
+                              label: const Text('Send payment reminder'),
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: inv.status == 'paid' || _busy
-                              ? null
-                              : () => _markPaid(inv),
-                          icon: const Icon(Icons.check_circle_outline),
-                          label: Text(
-                              inv.status == 'paid' ? 'Paid' : 'Mark as paid'),
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _busy ? null : () => _share(inv),
+                              icon: const Icon(Icons.share),
+                              label: const Text('Share PDF'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: inv.status == 'paid' || _busy
+                                  ? null
+                                  : () => _markPaid(inv),
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: Text(
+                                  inv.status == 'paid' ? 'Paid' : 'Mark as paid'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -197,6 +215,46 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Returns true if the invoice is overdue (dueDate passed, not paid).
+  bool _isOverdue(Invoice invoice) {
+    if (invoice.dueDate == null || invoice.status == 'paid') return false;
+    return invoice.dueDate!.isBefore(DateTime.now());
+  }
+
+  /// Opens WhatsApp (or the native share sheet) with a pre-filled payment
+  /// reminder message. Uses the same share_plus mechanism as PDF sharing —
+  /// no SMS gateway, no push, fully offline.
+  Future<void> _sendWhatsAppReminder(Invoice invoice) async {
+    try {
+      final profile = await ref.read(businessProfileControllerProvider.future);
+      if (profile == null) return;
+      final client = await ref.read(clientByIdProvider(invoice.clientId).future);
+      if (client == null) return;
+
+      final fmt = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
+      final clientName = client.name;
+      final businessName = profile.businessName;
+      final invoiceNumber = invoice.invoiceNumber;
+      final amount = fmt.format(invoice.totalAmount);
+      final dueDate = invoice.dueDate != null
+          ? '${invoice.dueDate!.day}/${invoice.dueDate!.month}/${invoice.dueDate!.year}'
+          : '—';
+
+      final message = 'Hi $clientName, this is a friendly reminder that '
+          'invoice $invoiceNumber for $amount was due on $dueDate. '
+          'Please process the payment at your earliest convenience. '
+          'Thank you — $businessName';
+
+      await Share.share(message, subject: 'Payment reminder: $invoiceNumber');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send reminder: $e')),
+        );
+      }
     }
   }
 

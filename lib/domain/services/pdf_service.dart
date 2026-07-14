@@ -32,15 +32,20 @@ class PdfInvoiceData {
 class PdfService {
   pw.Document build(PdfInvoiceData data) {
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-    pdf.addPage(_buildPage(data));
+    final template = data.business.invoiceTemplate;
+    pdf.addPage(_buildPage(data, template));
     return pdf;
   }
 
-  pw.MultiPage _buildPage(PdfInvoiceData data) {
+  pw.MultiPage _buildPage(PdfInvoiceData data, String template) {
+    final isClassic = template == 'classic';
     return pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(36),
-      build: (ctx) => _buildContent(data, ctx),
+      header: isClassic
+          ? (ctx) => _buildClassicHeaderBand(data, ctx)
+          : null,
+      build: (ctx) => _buildContent(data, ctx, isClassic),
       footer: (ctx) => pw.Center(
         child: pw.Text(
           'Generated with Invory',
@@ -50,20 +55,25 @@ class PdfService {
     );
   }
 
-  List<pw.Widget> _buildContent(PdfInvoiceData data, pw.Context ctx) {
+  List<pw.Widget> _buildContent(PdfInvoiceData data, pw.Context ctx, bool isClassic) {
     final isUnregistered = !(data.business.isGstRegistered);
     final blocks = <pw.Widget>[];
 
-    // 1 & 2. Header: business block (left) + invoice meta (right).
-    blocks.add(_buildHeader(data, isUnregistered));
-    blocks.add(pw.SizedBox(height: 18));
+    // For 'classic' template, the header band is rendered by MultiPage's
+    // header callback (repeats on every page). For 'minimal', the header
+    // is inline content (first page only).
+    if (!isClassic) {
+      // 1 & 2. Header: business block (left) + invoice meta (right).
+      blocks.add(_buildHeader(data, isUnregistered));
+      blocks.add(pw.SizedBox(height: 18));
+    }
 
     // 3 & 4. Bill-to + place of supply.
     blocks.add(_buildBillTo(data));
     blocks.add(pw.SizedBox(height: 18));
 
     // 5. Line items table.
-    blocks.add(_buildItemsTable(data, isUnregistered));
+    blocks.add(_buildItemsTable(data, isUnregistered, isClassic));
     blocks.add(pw.SizedBox(height: 12));
 
     // 6 & 7. Summary + amount in words.
@@ -84,6 +94,41 @@ class PdfService {
     }
 
     return blocks;
+  }
+
+  /// Classic template header band — a colored strip with the business name
+  /// + document title, repeated on every page by MultiPage's header callback.
+  pw.Widget _buildClassicHeaderBand(PdfInvoiceData data, pw.Context ctx) {
+    final isUnregistered = !(data.business.isGstRegistered);
+    final title = _documentTitle(data);
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const pw.BoxDecoration(
+        color: PdfColor.fromInt(0xFF2563EB), // Invory brand blue
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            data.business.businessName,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
+            ),
+          ),
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ---------- Header ----------
@@ -261,9 +306,13 @@ class PdfService {
 
   // ---------- Items table ----------
 
-  pw.Widget _buildItemsTable(PdfInvoiceData data, bool isUnregistered) {
+  pw.Widget _buildItemsTable(PdfInvoiceData data, bool isUnregistered, bool isClassic) {
+    // Classic template uses the brand blue header; minimal uses dark grey.
+    final headerColor = isClassic
+        ? const PdfColor.fromInt(0xFF2563EB)
+        : PdfColors.blueGrey900;
     final headerRow = pw.TableRow(
-      decoration: const pw.BoxDecoration(color: PdfColors.blueGrey900),
+      decoration: pw.BoxDecoration(color: headerColor),
       children: [
         _headerCell('Description'),
         _headerCell('HSN/SAC'),

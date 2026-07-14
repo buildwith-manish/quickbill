@@ -43,6 +43,10 @@ class GstSummaryCard extends StatelessWidget {
             ),
             const Divider(height: 16),
             _row(context, 'Subtotal', fmt(calculation.subtotal)),
+            if (calculation.discountAmount > 0) ...[
+              _row(context, 'Discount', '- ${fmt(calculation.discountAmount)}'),
+              _row(context, 'Taxable Amount', fmt(calculation.taxableAmount)),
+            ],
             if (isUnregistered)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),

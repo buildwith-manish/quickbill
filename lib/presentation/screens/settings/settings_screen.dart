@@ -39,6 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   String? _stateCode;
   String? _logoPath;
+  String _invoiceTemplate = 'minimal';
   bool _isGstRegistered = true;
   bool _loading = true;
   bool _saving = false;
@@ -63,6 +64,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _bankIfsc.text = p.bankIfsc ?? '';
       _upiId.text = p.upiId ?? '';
       _logoPath = p.logoPath;
+      _invoiceTemplate = p.invoiceTemplate;
       _stateCode = p.stateCode;
       _isGstRegistered = p.isGstRegistered;
     }
@@ -122,6 +124,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           : _bankIfsc.text.trim().toUpperCase()),
       upiId: Value(_upiId.text.trim().isEmpty ? null : _upiId.text.trim()),
       logoPath: Value(_logoPath),
+      invoiceTemplate: Value(_invoiceTemplate),
       isGstRegistered: Value(_isGstRegistered),
     );
 
@@ -248,6 +251,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 16),
             ],
+            const SizedBox(height: 16),
+
+            // PDF template selector — Minimal vs Classic.
+            _SectionLabel('Invoice template'),
+            DropdownButtonFormField<String>(
+              value: _invoiceTemplate,
+              decoration: const InputDecoration(
+                helperText: 'Classic adds a colored header band on every page',
+              ),
+              items: const [
+                DropdownMenuItem(value: 'minimal', child: Text('Minimal')),
+                DropdownMenuItem(value: 'classic', child: Text('Classic')),
+              ],
+              onChanged: (v) {
+                if (v != null) setState(() => _invoiceTemplate = v);
+              },
+            ),
+            const SizedBox(height: 16),
 
             _SectionLabel('State *'),
             DropdownButtonFormField<String>(
