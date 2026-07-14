@@ -136,9 +136,9 @@ class InvoiceRepository {
 
       final invoice = (await byId(id))!;
       final savedItems = await itemsFor(id);
-      final client =
-          await (_db.select(_db.clients)..where((t) => t.id.equals(clientId)))
-              .getSingle();
+      final client = await (_db.select(_db.clients)
+            ..where((t) => t.id.equals(clientId)))
+          .getSingle();
       return SavedInvoice(
         invoice: invoice,
         items: savedItems,
@@ -159,7 +159,8 @@ class InvoiceRepository {
     final existing = await (_db.select(_db.seqCounters)
           ..where((t) => t.key.equals(fyLabel)))
         .getSingleOrNull();
-    final newSeq = (existing?.lastSeq ?? 0) > seq ? (existing?.lastSeq ?? 0) : seq;
+    final newSeq =
+        (existing?.lastSeq ?? 0) > seq ? (existing?.lastSeq ?? 0) : seq;
     await _db.into(_db.seqCounters).insertOnConflictUpdate(
           SeqCountersCompanion.insert(
             key: fyLabel,
@@ -204,8 +205,7 @@ class InvoiceRepository {
       );
 
       // Replace all items: simplest correct strategy for v1.
-      await (_db.delete(_db.invoiceItems)
-            ..where((t) => t.invoiceId.equals(id)))
+      await (_db.delete(_db.invoiceItems)..where((t) => t.invoiceId.equals(id)))
           .go();
       for (final item in items) {
         await _db.into(_db.invoiceItems).insert(InvoiceItemsCompanion.insert(
@@ -225,9 +225,9 @@ class InvoiceRepository {
 
       final invoice = (await byId(id))!;
       final savedItems = await itemsFor(id);
-      final client =
-          await (_db.select(_db.clients)..where((t) => t.id.equals(clientId)))
-              .getSingle();
+      final client = await (_db.select(_db.clients)
+            ..where((t) => t.id.equals(clientId)))
+          .getSingle();
       return SavedInvoice(
         invoice: invoice,
         items: savedItems,
@@ -243,8 +243,7 @@ class InvoiceRepository {
 
   Future<void> delete(String id) async {
     await _db.transaction(() async {
-      await (_db.delete(_db.invoiceItems)
-            ..where((t) => t.invoiceId.equals(id)))
+      await (_db.delete(_db.invoiceItems)..where((t) => t.invoiceId.equals(id)))
           .go();
       await (_db.delete(_db.invoices)..where((t) => t.id.equals(id))).go();
     });

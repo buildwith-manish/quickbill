@@ -72,8 +72,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   void dispose() {
     for (final c in [
-      _businessName, _gstin, _address, _phone, _email, _pan,
-      _bankAccountName, _bankAccountNumber, _bankIfsc, _upiId,
+      _businessName,
+      _gstin,
+      _address,
+      _phone,
+      _email,
+      _pan,
+      _bankAccountName,
+      _bankAccountNumber,
+      _bankIfsc,
+      _upiId,
     ]) {
       c.dispose();
     }
@@ -101,16 +109,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       address: Value(_address.text.trim()),
       phone: Value(_phone.text.trim().isEmpty ? null : _phone.text.trim()),
       email: Value(_email.text.trim().isEmpty ? null : _email.text.trim()),
-      panNumber: Value(_pan.text.trim().isEmpty ? null : _pan.text.trim().toUpperCase()),
-      bankAccountName: Value(_bankAccountName.text.trim().isEmpty ? null : _bankAccountName.text.trim()),
-      bankAccountNumber: Value(_bankAccountNumber.text.trim().isEmpty ? null : _bankAccountNumber.text.trim()),
-      bankIfsc: Value(_bankIfsc.text.trim().isEmpty ? null : _bankIfsc.text.trim().toUpperCase()),
+      panNumber: Value(
+          _pan.text.trim().isEmpty ? null : _pan.text.trim().toUpperCase()),
+      bankAccountName: Value(_bankAccountName.text.trim().isEmpty
+          ? null
+          : _bankAccountName.text.trim()),
+      bankAccountNumber: Value(_bankAccountNumber.text.trim().isEmpty
+          ? null
+          : _bankAccountNumber.text.trim()),
+      bankIfsc: Value(_bankIfsc.text.trim().isEmpty
+          ? null
+          : _bankIfsc.text.trim().toUpperCase()),
       upiId: Value(_upiId.text.trim().isEmpty ? null : _upiId.text.trim()),
       logoPath: Value(_logoPath),
       isGstRegistered: Value(_isGstRegistered),
     );
 
-    await ref.read(businessProfileControllerProvider.notifier).saveProfile(companion);
+    await ref
+        .read(businessProfileControllerProvider.notifier)
+        .saveProfile(companion);
 
     if (mounted) {
       setState(() => _saving = false);
@@ -129,7 +146,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             'This deletes your business profile, all clients, and all invoices '
             'from this device. Cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
@@ -197,8 +216,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'Toggle off if you are below the ₹20L threshold or under the composition scheme.',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -299,7 +318,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             Row(
               children: [
-                Expanded(child: TextFormField(controller: _bankAccountNumber, keyboardType: TextInputType.number)),
+                Expanded(
+                    child: TextFormField(
+                        controller: _bankAccountNumber,
+                        keyboardType: TextInputType.number)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
@@ -322,8 +344,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onPressed: _saving ? null : _save,
               child: _saving
                   ? const SizedBox(
-                      width: 20, height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
                   : const Text('Save changes'),
             ),
 
@@ -333,7 +357,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _SectionHeader(
               icon: Icons.info_outline,
               title: 'About QuickBill',
-              subtitle: 'QuickBill v1.1.0 • Offline-first • No login, no cloud sync. '
+              subtitle:
+                  'QuickBill v1.1.0 • Offline-first • No login, no cloud sync. '
                   'All data is stored on this device only.',
               colors: colors,
             ),
@@ -354,7 +379,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.gavel_outlined, size: 16, color: colors.warning),
+                      Icon(Icons.gavel_outlined,
+                          size: 16, color: colors.warning),
                       const SizedBox(width: 8),
                       Text(
                         AppLocalizations.of(context)!.disclaimerTitle,
@@ -379,7 +405,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             TextButton.icon(
               onPressed: _confirmReset,
               icon: Icon(Icons.refresh, color: colors.danger),
-              label: Text('Reset all data', style: TextStyle(color: colors.danger)),
+              label: Text('Reset all data',
+                  style: TextStyle(color: colors.danger)),
             ),
           ],
         ),

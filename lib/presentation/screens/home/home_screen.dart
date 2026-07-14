@@ -106,11 +106,15 @@ class _BodyState extends State<_Body> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final invoices = widget.invoices;
-    final monthInvoices = invoices.where((i) =>
-        i.issueDate.year == now.year && i.issueDate.month == now.month).toList();
-    final monthTotal = monthInvoices.fold<double>(0, (s, i) => s + i.totalAmount);
-    final outstanding =
-        invoices.where((i) => i.status != 'paid').fold<double>(0, (s, i) => s + i.totalAmount);
+    final monthInvoices = invoices
+        .where((i) =>
+            i.issueDate.year == now.year && i.issueDate.month == now.month)
+        .toList();
+    final monthTotal =
+        monthInvoices.fold<double>(0, (s, i) => s + i.totalAmount);
+    final outstanding = invoices
+        .where((i) => i.status != 'paid')
+        .fold<double>(0, (s, i) => s + i.totalAmount);
 
     final recent = invoices.take(5).toList();
     final fmt = NumberFormat.currency(locale: 'en_IN', symbol: '₹');
@@ -212,7 +216,8 @@ class _BackupNudgeBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.cloud_upload_outlined, size: 18, color: Colors.orange),
+          const Icon(Icons.cloud_upload_outlined,
+              size: 18, color: Colors.orange),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -231,7 +236,8 @@ class _BackupNudgeBanner extends StatelessWidget {
                     onPressed: onAction,
                     style: TextButton.styleFrom(
                       minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: const Text('Back up now'),
@@ -345,7 +351,8 @@ class _InvoiceTile extends StatelessWidget {
         onTap: () => context.push('/invoices/${invoice.id}/preview'),
         title: Text(
           invoice.invoiceNumber,
-          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          style:
+              theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           dateFmt.format(invoice.issueDate),
@@ -371,7 +378,8 @@ class _InvoiceTile extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               fmt.format(invoice.totalAmount),
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
           ],
         ),

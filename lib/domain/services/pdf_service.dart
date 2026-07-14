@@ -98,7 +98,8 @@ class PdfService {
     if (business.logoPath != null && File(business.logoPath!).existsSync()) {
       final bytes = File(business.logoPath!).readAsBytesSync();
       leftChildren.add(
-        pw.Image(pw.MemoryImage(bytes), height: 56, width: 56, fit: pw.BoxFit.contain),
+        pw.Image(pw.MemoryImage(bytes),
+            height: 56, width: 56, fit: pw.BoxFit.contain),
       );
       leftChildren.add(pw.SizedBox(height: 6));
     }
@@ -113,7 +114,8 @@ class PdfService {
       leftChildren.add(
         pw.Padding(
           padding: const pw.EdgeInsets.only(top: 2),
-          child: pw.Text(business.address, style: const pw.TextStyle(fontSize: 9)),
+          child:
+              pw.Text(business.address, style: const pw.TextStyle(fontSize: 9)),
         ),
       );
     }
@@ -182,14 +184,18 @@ class PdfService {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Expanded(flex: 3, child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: leftChildren,
-        )),
-        pw.Expanded(flex: 2, child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.end,
-          children: rightChildren,
-        )),
+        pw.Expanded(
+            flex: 3,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: leftChildren,
+            )),
+        pw.Expanded(
+            flex: 2,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: rightChildren,
+            )),
       ],
     );
   }
@@ -201,7 +207,10 @@ class PdfService {
     final invoice = data.invoice;
     final children = <pw.Widget>[
       pw.Text('Bill To',
-          style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+          style: pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.grey700)),
       pw.SizedBox(height: 2),
       pw.Text(client.name,
           style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
@@ -209,7 +218,8 @@ class PdfService {
     if ((client.gstin ?? '').isNotEmpty) {
       children.add(pw.Padding(
         padding: const pw.EdgeInsets.only(top: 2),
-        child: pw.Text('GSTIN: ${client.gstin}', style: const pw.TextStyle(fontSize: 9)),
+        child: pw.Text('GSTIN: ${client.gstin}',
+            style: const pw.TextStyle(fontSize: 9)),
       ));
     }
     if ((client.address ?? '').isNotEmpty) {
@@ -226,7 +236,8 @@ class PdfService {
       ),
     ));
 
-    final placeName = stateNameForCode(invoice.placeOfSupply) ?? invoice.placeOfSupply;
+    final placeName =
+        stateNameForCode(invoice.placeOfSupply) ?? invoice.placeOfSupply;
     children.add(pw.Padding(
       padding: const pw.EdgeInsets.only(top: 6),
       child: pw.Text(
@@ -258,7 +269,8 @@ class PdfService {
         _headerCell('HSN/SAC'),
         _headerCell('Qty', align: pw.Alignment.centerRight),
         _headerCell('Unit Price', align: pw.Alignment.centerRight),
-        if (!isUnregistered) _headerCell('GST%', align: pw.Alignment.centerRight),
+        if (!isUnregistered)
+          _headerCell('GST%', align: pw.Alignment.centerRight),
         _headerCell('Amount', align: pw.Alignment.centerRight),
       ],
     );
@@ -272,7 +284,8 @@ class PdfService {
           _bodyCell(_fmtNumber(item.quantity), align: pw.Alignment.centerRight),
           _bodyCell(_fmtRupee(item.unitPrice), align: pw.Alignment.centerRight),
           if (!isUnregistered)
-            _bodyCell('${item.gstRatePercent.toStringAsFixed(0)}%', align: pw.Alignment.centerRight),
+            _bodyCell('${item.gstRatePercent.toStringAsFixed(0)}%',
+                align: pw.Alignment.centerRight),
           _bodyCell(_fmtRupee(item.lineTotal), align: pw.Alignment.centerRight),
         ],
       ));
@@ -286,7 +299,10 @@ class PdfService {
         2: const pw.FlexColumnWidth(1.1),
         3: const pw.FlexColumnWidth(1.5),
         if (!isUnregistered) 4: const pw.FlexColumnWidth(1.0),
-        if (!isUnregistered) 5: const pw.FlexColumnWidth(1.5) else 4: const pw.FlexColumnWidth(1.5),
+        if (!isUnregistered)
+          5: const pw.FlexColumnWidth(1.5)
+        else
+          4: const pw.FlexColumnWidth(1.5),
       },
       children: rows,
     );
@@ -308,12 +324,16 @@ class PdfService {
         italic: true,
       ));
     } else {
-      if (data.gst.cgst > 0) rows.add(_summaryRow('CGST', _fmtRupee(data.gst.cgst)));
-      if (data.gst.sgst > 0) rows.add(_summaryRow('SGST', _fmtRupee(data.gst.sgst)));
-      if (data.gst.igst > 0) rows.add(_summaryRow('IGST', _fmtRupee(data.gst.igst)));
+      if (data.gst.cgst > 0)
+        rows.add(_summaryRow('CGST', _fmtRupee(data.gst.cgst)));
+      if (data.gst.sgst > 0)
+        rows.add(_summaryRow('SGST', _fmtRupee(data.gst.sgst)));
+      if (data.gst.igst > 0)
+        rows.add(_summaryRow('IGST', _fmtRupee(data.gst.igst)));
     }
 
-    rows.add(_summaryRow('Total Amount', _fmtRupee(data.gst.total), bold: true));
+    rows.add(
+        _summaryRow('Total Amount', _fmtRupee(data.gst.total), bold: true));
 
     return pw.Align(
       alignment: pw.Alignment.centerRight,
@@ -398,7 +418,8 @@ class PdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text('Notes',
-              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+              style:
+                  pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 2),
           pw.Text(notes, style: const pw.TextStyle(fontSize: 9)),
         ],
@@ -414,26 +435,31 @@ class PdfService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+          pw.Text(label,
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
           pw.Text(value, style: const pw.TextStyle(fontSize: 9)),
         ],
       ),
     );
   }
 
-  pw.Widget _headerCell(String text, {pw.Alignment align = pw.Alignment.centerLeft}) {
+  pw.Widget _headerCell(String text,
+      {pw.Alignment align = pw.Alignment.centerLeft}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: pw.Align(
         alignment: align,
         child: pw.Text(text,
             style: pw.TextStyle(
-                fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                fontSize: 9,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white)),
       ),
     );
   }
 
-  pw.Widget _bodyCell(String text, {pw.Alignment align = pw.Alignment.centerLeft}) {
+  pw.Widget _bodyCell(String text,
+      {pw.Alignment align = pw.Alignment.centerLeft}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: pw.Align(
@@ -443,7 +469,8 @@ class PdfService {
     );
   }
 
-  pw.TableRow _summaryRow(String label, String value, {bool bold = false, bool italic = false}) {
+  pw.TableRow _summaryRow(String label, String value,
+      {bool bold = false, bool italic = false}) {
     return pw.TableRow(
       children: [
         pw.Padding(
@@ -500,7 +527,8 @@ class PdfService {
     final intPart = abs.floor();
     final frac = (abs - intPart);
     final intStr = _groupIndian(intPart.toString());
-    final fracStr = frac == 0 ? '' : '.${(frac * 100).round().toString().padLeft(2, '0')}';
+    final fracStr =
+        frac == 0 ? '' : '.${(frac * 100).round().toString().padLeft(2, '0')}';
     return '${isNeg ? '-' : ''}$intStr$fracStr';
   }
 
@@ -557,13 +585,38 @@ class PdfService {
 
   String _belowHundred(int n) {
     const ones = [
-      '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight',
-      'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen',
-      'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+      '',
+      'One',
+      'Two',
+      'Three',
+      'Four',
+      'Five',
+      'Six',
+      'Seven',
+      'Eight',
+      'Nine',
+      'Ten',
+      'Eleven',
+      'Twelve',
+      'Thirteen',
+      'Fourteen',
+      'Fifteen',
+      'Sixteen',
+      'Seventeen',
+      'Eighteen',
+      'Nineteen'
     ];
     const tens = [
-      '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy',
-      'Eighty', 'Ninety'
+      '',
+      '',
+      'Twenty',
+      'Thirty',
+      'Forty',
+      'Fifty',
+      'Sixty',
+      'Seventy',
+      'Eighty',
+      'Ninety'
     ];
     if (n < 20) return ones[n];
     return '${tens[n ~/ 10]}${n % 10 == 0 ? '' : ' ${ones[n % 10]}'}';

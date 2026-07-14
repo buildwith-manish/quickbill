@@ -26,7 +26,8 @@ void main() {
         businessName: 'Anjali Sharma Design Studio',
         gstin: '27ABCDE1234F1Z5',
         stateCode: '27',
-        address: 'Flat 12B, Sunrise Apartments, Hill Road, Bandra West, Mumbai, Maharashtra 400050',
+        address:
+            'Flat 12B, Sunrise Apartments, Hill Road, Bandra West, Mumbai, Maharashtra 400050',
         phone: '9876543210',
         email: 'anjali@example.com',
         panNumber: 'ABCDE1234F',
@@ -51,14 +52,17 @@ void main() {
       // 100+ character client name and address.
       client = Client(
         id: 'c1',
-        name: 'Acme Corporation Private Limited Technologies India Subsidiary Holdings LLC Group'
+        name:
+            'Acme Corporation Private Limited Technologies India Subsidiary Holdings LLC Group'
             ' With A Very Long Name That Exceeds Normal Display Widths',
         gstin: '29AAACI1234L1ZP',
         stateCode: '29',
-        address: 'Tower 4, 15th Floor, Wing B, Prestige Tech Park, Outer Ring Road, Kadubeesanahalli,'
+        address:
+            'Tower 4, 15th Floor, Wing B, Prestige Tech Park, Outer Ring Road, Kadubeesanahalli,'
             ' Bengaluru, Karnataka 560103, India — Additional address line for stress testing'
             ' the PDF layout engine with unusually long multiline content',
-        email: 'accounts@acme-corp-tech-india-subsidiary-holdings-llc-group.example.com',
+        email:
+            'accounts@acme-corp-tech-india-subsidiary-holdings-llc-group.example.com',
         phone: '9876543210',
         createdAt: DateTime(2026, 7, 14),
       );
@@ -81,16 +85,18 @@ void main() {
         createdAt: DateTime(2026, 7, 14),
       );
 
-      items = List.generate(3, (i) => InvoiceItem(
-        id: 'item$i',
-        invoiceId: 'inv1',
-        description: 'Design service — milestone ${i + 1}',
-        hsnSacCode: '998314',
-        quantity: 1,
-        unitPrice: 33333.33,
-        gstRatePercent: 18,
-        lineTotal: 33333.33,
-      ));
+      items = List.generate(
+          3,
+          (i) => InvoiceItem(
+                id: 'item$i',
+                invoiceId: 'inv1',
+                description: 'Design service — milestone ${i + 1}',
+                hsnSacCode: '998314',
+                quantity: 1,
+                unitPrice: 33333.33,
+                gstRatePercent: 18,
+                lineTotal: 33333.33,
+              ));
 
       final data = PdfInvoiceData(
         business: business,
@@ -142,17 +148,20 @@ void main() {
 
       // 25 line items — should fit on one A4 page but exercises the
       // table layout engine heavily.
-      items = List.generate(25, (i) => InvoiceItem(
-        id: 'item$i',
-        invoiceId: 'inv2',
-        description: 'Line item ${i + 1} — consulting hours, design review,'
-            ' implementation support, and documentation for module ${i + 1}',
-        hsnSacCode: '998314',
-        quantity: (i + 1).toDouble(),
-        unitPrice: 1000,
-        gstRatePercent: 18,
-        lineTotal: (i + 1) * 1000.0,
-      ));
+      items = List.generate(
+          25,
+          (i) => InvoiceItem(
+                id: 'item$i',
+                invoiceId: 'inv2',
+                description:
+                    'Line item ${i + 1} — consulting hours, design review,'
+                    ' implementation support, and documentation for module ${i + 1}',
+                hsnSacCode: '998314',
+                quantity: (i + 1).toDouble(),
+                unitPrice: 1000,
+                gstRatePercent: 18,
+                lineTotal: (i + 1) * 1000.0,
+              ));
 
       final data = PdfInvoiceData(
         business: business,
@@ -173,11 +182,13 @@ void main() {
     test('generates PDF with long strings AND 20+ items combined', () async {
       client = Client(
         id: 'c3',
-        name: 'Acme Corporation Private Limited Technologies India Subsidiary Holdings LLC Group'
+        name:
+            'Acme Corporation Private Limited Technologies India Subsidiary Holdings LLC Group'
             ' With A Very Long Name That Exceeds Normal Display Widths',
         gstin: '33AAACI1234L1ZP',
         stateCode: '33',
-        address: 'Very long address that spans multiple lines when rendered in the'
+        address:
+            'Very long address that spans multiple lines when rendered in the'
             ' bill-to block of the PDF — Tower 4, 15th Floor, Wing B, Prestige Tech Park,'
             ' Outer Ring Road, Kadubeesanahalli, Chennai, Tamil Nadu 600001, India',
         email: null,
@@ -206,18 +217,21 @@ void main() {
         createdAt: DateTime(2026, 7, 14),
       );
 
-      items = List.generate(22, (i) => InvoiceItem(
-        id: 'item$i',
-        invoiceId: 'inv3',
-        description: 'Service item ${i + 1} with a moderately long description'
-            ' that exercises the cell-wrapping behavior of the items table'
-            ' — milestone ${i + 1} of 22',
-        hsnSacCode: '998314',
-        quantity: 1,
-        unitPrice: (i + 1) * 100,
-        gstRatePercent: 18,
-        lineTotal: (i + 1) * 100.0,
-      ));
+      items = List.generate(
+          22,
+          (i) => InvoiceItem(
+                id: 'item$i',
+                invoiceId: 'inv3',
+                description:
+                    'Service item ${i + 1} with a moderately long description'
+                    ' that exercises the cell-wrapping behavior of the items table'
+                    ' — milestone ${i + 1} of 22',
+                hsnSacCode: '998314',
+                quantity: 1,
+                unitPrice: (i + 1) * 100,
+                gstRatePercent: 18,
+                lineTotal: (i + 1) * 100.0,
+              ));
 
       final data = PdfInvoiceData(
         business: business,

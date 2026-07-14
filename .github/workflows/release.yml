@@ -45,15 +45,25 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Verify signing secrets are present
+        env:
+          SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::Release signing secrets are missing. Set SIGNING_KEYSTORE, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD as GitHub repo secrets."
+            exit 1
+          fi
+
       - name: Decode release keystore
-        if: ${{ env.SIGNING_KEYSTORE != '' }}
         env:
           SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
         run: |
           echo "$SIGNING_KEYSTORE" | base64 -d > android/app/release-keystore.jks
 
       - name: Write key.properties
-        if: ${{ env.KEYSTORE_PASSWORD != '' }}
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}

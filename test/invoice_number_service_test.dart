@@ -66,7 +66,11 @@ void main() {
         igstAmount: 0,
         totalAmount: 1180,
         items: const [
-          InvoiceItemInput(description: 'X', quantity: 1, unitPrice: 1000, gstRatePercent: 18),
+          InvoiceItemInput(
+              description: 'X',
+              quantity: 1,
+              unitPrice: 1000,
+              gstRatePercent: 18),
         ],
       );
       expect(first.invoice.invoiceNumber, 'INV/2026-27/0001');
@@ -90,7 +94,11 @@ void main() {
         igstAmount: 0,
         totalAmount: 1180,
         items: const [
-          InvoiceItemInput(description: 'A', quantity: 1, unitPrice: 1000, gstRatePercent: 18),
+          InvoiceItemInput(
+              description: 'A',
+              quantity: 1,
+              unitPrice: 1000,
+              gstRatePercent: 18),
         ],
       );
 
@@ -106,7 +114,11 @@ void main() {
         igstAmount: 0,
         totalAmount: 2360,
         items: const [
-          InvoiceItemInput(description: 'B', quantity: 2, unitPrice: 1000, gstRatePercent: 18),
+          InvoiceItemInput(
+              description: 'B',
+              quantity: 2,
+              unitPrice: 1000,
+              gstRatePercent: 18),
         ],
       );
 
@@ -118,7 +130,8 @@ void main() {
       // 0002 was deleted.
       final next = await service.nextNumber(at: DateTime(2026, 7, 16));
       expect(next, 'INV/2026-27/0003',
-          reason: 'Deleting an invoice must not cause its number to be reused.');
+          reason:
+              'Deleting an invoice must not cause its number to be reused.');
 
       // Also delete invoice 0001 and verify the counter still doesn't go back.
       await repo.delete(inv1.invoice.id);
@@ -151,7 +164,11 @@ void main() {
         igstAmount: 0,
         totalAmount: 1180,
         items: const [
-          InvoiceItemInput(description: 'A', quantity: 1, unitPrice: 1000, gstRatePercent: 18),
+          InvoiceItemInput(
+              description: 'A',
+              quantity: 1,
+              unitPrice: 1000,
+              gstRatePercent: 18),
         ],
       );
 
@@ -179,7 +196,11 @@ void main() {
         igstAmount: 0,
         totalAmount: 1180,
         items: const [
-          InvoiceItemInput(description: 'A', quantity: 1, unitPrice: 1000, gstRatePercent: 18),
+          InvoiceItemInput(
+              description: 'A',
+              quantity: 1,
+              unitPrice: 1000,
+              gstRatePercent: 18),
         ],
       );
 
@@ -196,7 +217,8 @@ void main() {
       for (var i = 1; i <= 10; i++) {
         final num = await service.nextNumber(at: DateTime(2026, 7, 14));
         // Each must be unique.
-        expect(numbers.contains(num), isFalse, reason: 'Collision on iteration $i: $num');
+        expect(numbers.contains(num), isFalse,
+            reason: 'Collision on iteration $i: $num');
         numbers.add(num);
 
         await repo.create(
@@ -210,7 +232,11 @@ void main() {
           igstAmount: 0,
           totalAmount: 1180,
           items: const [
-            InvoiceItemInput(description: 'X', quantity: 1, unitPrice: 1000, gstRatePercent: 18),
+            InvoiceItemInput(
+                description: 'X',
+                quantity: 1,
+                unitPrice: 1000,
+                gstRatePercent: 18),
           ],
         );
       }
@@ -227,15 +253,15 @@ void main() {
 /// invoice inserts.
 Future<void> _seedClientAndProfile(AppDatabase db) async {
   await db.into(db.businessProfiles).insert(BusinessProfilesCompanion.insert(
-    id: const Value(1),
-    businessName: 'Test Business',
-    stateCode: '27',
-    isGstRegistered: const Value(true),
-  ));
+        id: const Value(1),
+        businessName: 'Test Business',
+        stateCode: '27',
+        isGstRegistered: const Value(true),
+      ));
 
   await db.into(db.clients).insert(ClientsCompanion.insert(
-    id: 'client-1',
-    name: 'Test Client',
-    stateCode: '27',
-  ));
+        id: 'client-1',
+        name: 'Test Client',
+        stateCode: '27',
+      ));
 }

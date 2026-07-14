@@ -89,16 +89,25 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
       address: Value(_address.text.trim()),
       phone: Value(_phone.text.trim().isEmpty ? null : _phone.text.trim()),
       email: Value(_email.text.trim().isEmpty ? null : _email.text.trim()),
-      panNumber: Value(_pan.text.trim().isEmpty ? null : _pan.text.trim().toUpperCase()),
-      bankAccountName: Value(_bankAccountName.text.trim().isEmpty ? null : _bankAccountName.text.trim()),
-      bankAccountNumber: Value(_bankAccountNumber.text.trim().isEmpty ? null : _bankAccountNumber.text.trim()),
-      bankIfsc: Value(_bankIfsc.text.trim().isEmpty ? null : _bankIfsc.text.trim().toUpperCase()),
+      panNumber: Value(
+          _pan.text.trim().isEmpty ? null : _pan.text.trim().toUpperCase()),
+      bankAccountName: Value(_bankAccountName.text.trim().isEmpty
+          ? null
+          : _bankAccountName.text.trim()),
+      bankAccountNumber: Value(_bankAccountNumber.text.trim().isEmpty
+          ? null
+          : _bankAccountNumber.text.trim()),
+      bankIfsc: Value(_bankIfsc.text.trim().isEmpty
+          ? null
+          : _bankIfsc.text.trim().toUpperCase()),
       upiId: Value(_upiId.text.trim().isEmpty ? null : _upiId.text.trim()),
       logoPath: Value(_logoPath),
       isGstRegistered: Value(_isGstRegistered),
     );
 
-    await ref.read(businessProfileControllerProvider.notifier).saveProfile(companion);
+    await ref
+        .read(businessProfileControllerProvider.notifier)
+        .saveProfile(companion);
 
     // Request notification permission now that onboarding is complete.
     // Fire-and-forget — denial is non-fatal and never blocks the user.
@@ -129,7 +138,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           children: [
             // Hero / intro
-            Icon(Icons.receipt_long, size: 48, color: theme.colorScheme.primary),
+            Icon(Icons.receipt_long,
+                size: 48, color: theme.colorScheme.primary),
             const SizedBox(height: 8),
             Text(
               'Tell QuickBill about your business so invoices carry your details automatically.',
@@ -158,7 +168,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
               textCapitalization: TextCapitalization.words,
               textInputAction: TextInputAction.next,
               validator: (v) => validateRequired(v, 'Business name'),
-              decoration: const InputDecoration(hintText: 'e.g. Anjali Sharma Design Studio'),
+              decoration: const InputDecoration(
+                  hintText: 'e.g. Anjali Sharma Design Studio'),
             ),
             const SizedBox(height: 16),
 
@@ -178,7 +189,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                       children: [
                         Text(
                           'GST registered?',
-                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -207,7 +219,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                 textInputAction: TextInputAction.next,
                 onChanged: _onGstinChanged,
                 validator: (v) => validateGstin(v, allowEmpty: false),
-                decoration: const InputDecoration(hintText: '15-character GSTIN'),
+                decoration:
+                    const InputDecoration(hintText: '15-character GSTIN'),
               ),
               const SizedBox(height: 16),
               _SectionLabel('PAN (optional)'),
@@ -225,7 +238,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
             _SectionLabel('State *'),
             DropdownButtonFormField<String>(
               value: _stateCode,
-              decoration: const InputDecoration(hintText: 'Select your state / UT'),
+              decoration:
+                  const InputDecoration(hintText: 'Select your state / UT'),
               items: gstStateCodes.entries
                   .map((e) => DropdownMenuItem(
                         value: e.key,
@@ -242,7 +256,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
               controller: _address,
               maxLines: 2,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Billing address shown on invoices'),
+              decoration: const InputDecoration(
+                  hintText: 'Billing address shown on invoices'),
             ),
             const SizedBox(height: 16),
 
@@ -271,7 +286,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     validator: validateEmail,
-                    decoration: const InputDecoration(hintText: 'you@example.com'),
+                    decoration:
+                        const InputDecoration(hintText: 'you@example.com'),
                   ),
                 ),
               ],
@@ -291,7 +307,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
               controller: _bankAccountName,
               textCapitalization: TextCapitalization.words,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(hintText: 'Name as per bank record'),
+              decoration:
+                  const InputDecoration(hintText: 'Name as per bank record'),
             ),
             const SizedBox(height: 12),
             Row(
@@ -339,7 +356,8 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Text('Save & start invoicing'),
             ),
@@ -411,7 +429,8 @@ class _SectionHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
                 subtitle,
@@ -478,7 +497,8 @@ class _DisclaimerBanner extends StatelessWidget {
                     onPressed: onDismiss,
                     style: TextButton.styleFrom(
                       minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(l10n.gotIt),

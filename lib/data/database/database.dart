@@ -38,29 +38,40 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
+          // Also create indexes on fresh installs — onCreate only runs
+          // createAll() which doesn't include custom indexes defined in
+          // onUpgrade. We want fresh installs to have the same indexes
+          // as upgraded ones.
+          await _createIndexes(m);
         },
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             // v2: add indexes for FK columns and the seq_counters table.
             await m.createTable(seqCounters);
-            await m.createIndex(Index(
-              'idx_invoices_client_id',
-              'CREATE INDEX idx_invoices_client_id ON invoices (client_id)',
-            ));
-            await m.createIndex(Index(
-              'idx_invoices_issue_date',
-              'CREATE INDEX idx_invoices_issue_date ON invoices (issue_date)',
-            ));
-            await m.createIndex(Index(
-              'idx_invoice_items_invoice_id',
-              'CREATE INDEX idx_invoice_items_invoice_id ON invoice_items (invoice_id)',
-            ));
+            await _createIndexes(m);
           }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
       );
+
+  /// Creates all v2 indexes. Called from both onCreate (fresh install)
+  /// and onUpgrade (v1→v2 upgrade).
+  Future<void> _createIndexes(Migrator m) async {
+    await m.createIndex(Index(
+      'idx_invoices_client_id',
+      'CREATE INDEX idx_invoices_client_id ON invoices (client_id)',
+    ));
+    await m.createIndex(Index(
+      'idx_invoices_issue_date',
+      'CREATE INDEX idx_invoices_issue_date ON invoices (issue_date)',
+    ));
+    await m.createIndex(Index(
+      'idx_invoice_items_invoice_id',
+      'CREATE INDEX idx_invoice_items_invoice_id ON invoice_items (invoice_id)',
+    ));
+  }
 
   /// Wipe all data — used by Settings → "Reset all data". Cascades through
   /// all 4 tables in the correct FK order.

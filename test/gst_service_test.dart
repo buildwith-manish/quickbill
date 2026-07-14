@@ -232,7 +232,8 @@ void main() {
 
       // CRITICAL INVARIANT: CGST + SGST + IGST must equal totalTax exactly
       // (no paise lost or gained in the split).
-      expect(result.cgst + result.sgst + result.igst, closeTo(result.totalTax, 1e-9));
+      expect(result.cgst + result.sgst + result.igst,
+          closeTo(result.totalTax, 1e-9));
     });
 
     test('3-decimal line total (₹99.995 × 3 @ 18%) — interstate', () {

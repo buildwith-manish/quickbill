@@ -76,8 +76,7 @@ class ReminderService {
     if (invoice.dueDate == null) return;
     await init();
 
-    final reminderTime =
-        invoice.dueDate!.subtract(const Duration(days: 1));
+    final reminderTime = invoice.dueDate!.subtract(const Duration(days: 1));
 
     // Don't schedule in the past.
     if (reminderTime.isBefore(DateTime.now())) return;
@@ -165,8 +164,7 @@ class ReminderService {
     }
   }
 
-  String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/'
+  String _fmtDate(DateTime d) => '${d.day.toString().padLeft(2, '0')}/'
       '${d.month.toString().padLeft(2, '0')}/'
       '${d.year}';
 }

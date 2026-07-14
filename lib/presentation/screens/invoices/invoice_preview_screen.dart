@@ -115,9 +115,8 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
                               ? null
                               : () => _markPaid(inv),
                           icon: const Icon(Icons.check_circle_outline),
-                          label: Text(inv.status == 'paid'
-                              ? 'Paid'
-                              : 'Mark as paid'),
+                          label: Text(
+                              inv.status == 'paid' ? 'Paid' : 'Mark as paid'),
                         ),
                       ),
                     ],
@@ -137,9 +136,25 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
     try {
       final items = await ref.read(invoiceItemsProvider(invoice.id).future);
       final profile = await ref.read(businessProfileControllerProvider.future);
-      if (profile == null) return;
-      final client = await ref.read(clientByIdProvider(invoice.clientId).future);
-      if (client == null) return;
+      if (profile == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Cannot share — business profile not found.')),
+          );
+        }
+        return;
+      }
+      final client =
+          await ref.read(clientByIdProvider(invoice.clientId).future);
+      if (client == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cannot share — client not found.')),
+          );
+        }
+        return;
+      }
 
       final data = PdfInvoiceData(
         business: profile,
@@ -158,8 +173,12 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
       final bytes = await PdfService().build(data).save();
 
       // Save to a temp file in the cache dir, then share via the native sheet.
+      // Sanitize the filename: replace any non-alphanumeric char with '_'.
       final tmpDir = await getTemporaryDirectory();
-      final filename = '${invoice.invoiceNumber.replaceAll('/', '_')}.pdf';
+      final safeName = invoice.invoiceNumber
+          .replaceAll(RegExp(r'[^A-Za-z0-9]'), '_')
+          .replaceAll(RegExp(r'_+'), '_');
+      final filename = '${safeName}_invoice.pdf';
       final file = File(p.join(tmpDir.path, filename));
       await file.writeAsBytes(bytes);
 
@@ -167,6 +186,15 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
         [XFile(file.path)],
         text: 'Invoice ${invoice.invoiceNumber} from ${profile.businessName}',
       );
+      // Note: the temp file is intentionally left in the cache dir — the OS
+      // cleans it up automatically. Deleting it immediately after sharing
+      // can cause the share sheet to fail on some Android versions.
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share PDF: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -190,7 +218,9 @@ class _InvoicePreviewScreenState extends ConsumerState<InvoicePreviewScreen> {
         content: const Text(
             'This permanently deletes the invoice and its line items. This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
@@ -326,7 +356,8 @@ class _PdfPreviewBody extends StatelessWidget {
                         ),
                         Text(data.invoice.invoiceNumber,
                             style: theme.textTheme.bodySmall),
-                        Text('Issued: ${dateFmt.format(data.invoice.issueDate)}',
+                        Text(
+                            'Issued: ${dateFmt.format(data.invoice.issueDate)}',
                             style: theme.textTheme.bodySmall),
                         if (data.invoice.dueDate != null)
                           Text('Due: ${dateFmt.format(data.invoice.dueDate!)}',
@@ -348,8 +379,7 @@ class _PdfPreviewBody extends StatelessWidget {
                   Text('GSTIN: ${data.client.gstin}',
                       style: theme.textTheme.bodySmall),
                 if ((data.client.address ?? '').isNotEmpty)
-                  Text(data.client.address!,
-                      style: theme.textTheme.bodySmall),
+                  Text(data.client.address!, style: theme.textTheme.bodySmall),
                 Text(
                   'State: ${stateNameForCode(data.client.stateCode) ?? data.client.stateCode} (${data.client.stateCode})',
                   style: theme.textTheme.bodySmall,
@@ -424,8 +454,7 @@ class _PdfPreviewBody extends StatelessWidget {
                       style: theme.textTheme.labelMedium
                           ?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(data.invoice.notes!,
-                      style: theme.textTheme.bodyMedium),
+                  Text(data.invoice.notes!, style: theme.textTheme.bodyMedium),
                 ],
               ),
             ),
@@ -436,7 +465,10 @@ class _PdfPreviewBody extends StatelessWidget {
   }
 
   Widget _summaryRow(String label, String value, ThemeData theme,
-      {bool bold = false, bool large = false, bool italic = false, Color? color}) {
+      {bool bold = false,
+      bool large = false,
+      bool italic = false,
+      Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -480,8 +512,8 @@ class _ItemsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final headerStyle = theme.textTheme.labelMedium
-        ?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurfaceVariant);
+    final headerStyle = theme.textTheme.labelMedium?.copyWith(
+        fontWeight: FontWeight.bold, color: theme.colorScheme.onSurfaceVariant);
 
     return Table(
       columnWidths: const {
@@ -509,13 +541,20 @@ class _ItemsTable extends StatelessWidget {
         ),
         ...items.map((i) => TableRow(
               children: [
-                _cell(i.description, theme.textTheme.bodyMedium, align: Alignment.centerLeft),
-                _cell(i.hsnSacCode ?? '—', theme.textTheme.bodyMedium, align: Alignment.centerLeft),
-                _cell(_fmtQty(i.quantity), theme.textTheme.bodyMedium, align: Alignment.centerRight),
-                _cell(fmt.format(i.unitPrice), theme.textTheme.bodyMedium, align: Alignment.centerRight),
+                _cell(i.description, theme.textTheme.bodyMedium,
+                    align: Alignment.centerLeft),
+                _cell(i.hsnSacCode ?? '—', theme.textTheme.bodyMedium,
+                    align: Alignment.centerLeft),
+                _cell(_fmtQty(i.quantity), theme.textTheme.bodyMedium,
+                    align: Alignment.centerRight),
+                _cell(fmt.format(i.unitPrice), theme.textTheme.bodyMedium,
+                    align: Alignment.centerRight),
                 if (!isUnregistered)
-                  _cell('${i.gstRatePercent.toStringAsFixed(0)}%', theme.textTheme.bodyMedium, align: Alignment.centerRight),
-                _cell(fmt.format(i.lineTotal), theme.textTheme.bodyMedium, align: Alignment.centerRight),
+                  _cell('${i.gstRatePercent.toStringAsFixed(0)}%',
+                      theme.textTheme.bodyMedium,
+                      align: Alignment.centerRight),
+                _cell(fmt.format(i.lineTotal), theme.textTheme.bodyMedium,
+                    align: Alignment.centerRight),
               ],
             )),
       ],

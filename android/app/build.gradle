@@ -59,12 +59,14 @@ android {
 
     buildTypes {
         release {
-            // If a keystore was provided via key.properties, sign with it.
-            // Otherwise fall back to debug signing so `flutter build apk --release`
-            // still works locally without a keystore.
+            // Release builds MUST be signed with a real keystore — no debug
+            // fallback. The release workflow provides key.properties from
+            // GitHub secrets. Local release builds without a keystore will
+            // fail with a clear Gradle error, which is the correct behavior
+            // (never ship a debug-signed release).
             signingConfig = keystoreProperties['storeFile'] != null
                 ? signingConfigs.release
-                : signingConfigs.debug
+                : null
 
             // Strip debug symbols and shrink the binary.
             minifyEnabled = true

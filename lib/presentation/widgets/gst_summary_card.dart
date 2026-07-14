@@ -30,7 +30,8 @@ class GstSummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.receipt_long, size: 18, color: theme.colorScheme.primary),
+                Icon(Icons.receipt_long,
+                    size: 18, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Summary',
@@ -149,7 +150,8 @@ String Function(double) _rupeeFormatter = (double v) {
   final intPart = abs.floor();
   final frac = (abs - intPart);
   final intStr = _groupIndian(intPart.toString());
-  final fracStr = frac == 0 ? '' : '.${(frac * 100).round().toString().padLeft(2, '0')}';
+  final fracStr =
+      frac == 0 ? '' : '.${(frac * 100).round().toString().padLeft(2, '0')}';
   return '${isNeg ? '-' : ''}₹$intStr$fracStr';
 };
 

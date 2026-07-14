@@ -88,7 +88,8 @@ class LogoPicker extends StatelessWidget {
                       child: Image.file(
                         File(currentPath!),
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32),
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image, size: 32),
                       ),
                     )
                   : Column(

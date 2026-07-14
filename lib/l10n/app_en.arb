@@ -31,9 +31,9 @@
   "resetAllData": "Reset all data",
   "disclaimerTitle": "Disclaimer",
   "@disclaimerTitle": {},
-  "disclaimerFull": "QuickBill helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Verify calculations with your accountant, especially for complex transactions.",
+  "disclaimerFull": "QuickBill helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Always verify tax calculations before filing returns.",
   "@disclaimerFull": {},
-  "disclaimerShort": "QuickBill generates GST-compliant invoices but is not a substitute for professional tax advice. Verify with your accountant.",
+  "disclaimerShort": "QuickBill generates GST-compliant invoices but is not a substitute for professional tax advice. Always verify tax calculations before filing returns.",
   "@disclaimerShort": {},
   "gotIt": "Got it",
   "@gotIt": {}

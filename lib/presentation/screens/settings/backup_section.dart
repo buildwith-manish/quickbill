@@ -131,7 +131,13 @@ class BackupSection extends ConsumerWidget {
       ref.invalidate(clientListProvider);
       ref.invalidate(invoiceListProvider);
       messenger.showSnackBar(
-        const SnackBar(content: Text('Backup imported. Restart the app to apply.')),
+        const SnackBar(
+            content: Text('Backup imported. Restart the app to apply.')),
+      );
+    } on BackupValidationException catch (e) {
+      // User-friendly validation error — show the message directly.
+      messenger.showSnackBar(
+        SnackBar(content: Text(e.message)),
       );
     } catch (e) {
       messenger.showSnackBar(

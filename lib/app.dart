@@ -204,7 +204,8 @@ class QuickBillApp extends ConsumerWidget {
         Locale('en'),
         Locale('hi'),
       ],
-      builder: (context, child) => DbCorruptionGuard(child: child ?? const SizedBox()),
+      builder: (context, child) =>
+          DbCorruptionGuard(child: child ?? const SizedBox()),
       routerConfig: router,
     );
   }

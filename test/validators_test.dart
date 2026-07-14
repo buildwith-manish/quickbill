@@ -37,8 +37,10 @@ void main() {
 
     test('invalid format rejected', () {
       expect(validatePan('ABCDE1234'), isNotNull); // too short (9 chars)
-      expect(validatePan('12345ABCDE'), isNotNull); // wrong pattern (digits first)
-      expect(validatePan('ABCDE12345'), isNotNull); // 10 chars but ends with digit
+      expect(
+          validatePan('12345ABCDE'), isNotNull); // wrong pattern (digits first)
+      expect(
+          validatePan('ABCDE12345'), isNotNull); // 10 chars but ends with digit
     });
 
     test('lowercase input is normalised and passes when valid', () {
@@ -99,13 +101,15 @@ void main() {
   group('validatePhone', () {
     test('valid 10-digit passes', () {
       expect(validatePhone('9876543210'), isNull);
-      expect(validatePhone('98765 43210'), isNull); // spaces stripped, 10 digits remain
+      expect(validatePhone('98765 43210'),
+          isNull); // spaces stripped, 10 digits remain
     });
 
     test('wrong length rejected', () {
       expect(validatePhone('987654321'), isNotNull); // 9 digits
       expect(validatePhone('98765432101'), isNotNull); // 11 digits
-      expect(validatePhone('+91 98765 43210'), isNotNull); // 12 digits after strip
+      expect(
+          validatePhone('+91 98765 43210'), isNotNull); // 12 digits after strip
     });
   });
 }

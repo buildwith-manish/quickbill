@@ -140,8 +140,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
       return;
     }
     if (_items.every((r) =>
-        r.description.text.trim().isEmpty &&
-        r.unitPrice.text.trim().isEmpty)) {
+        r.description.text.trim().isEmpty && r.unitPrice.text.trim().isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Add at least one line item')),
       );
@@ -150,99 +149,115 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
 
     setState(() => _saving = true);
 
-    // Pre-fill invoice number if empty.
-    if (_invoiceNumber.text.trim().isEmpty) {
-      final next = await ref.read(invoiceNumberServiceProvider).nextNumber();
-      _invoiceNumber.text = next;
-    }
-
-    final inputs = _items
-        .where((r) => r.description.text.trim().isNotEmpty)
-        .map((r) => InvoiceItemInput(
-              id: r.id,
-              description: r.description.text.trim(),
-              hsnSacCode: r.hsn.text.trim().isEmpty ? null : r.hsn.text.trim(),
-              quantity: double.tryParse(r.qty.text) ?? 1,
-              unitPrice: double.tryParse(r.unitPrice.text) ?? 0,
-              gstRatePercent: r.gstRate,
-            ))
-        .toList();
-
-    final sellerState = _business!.stateCode;
-    final placeOfSupply = _placeOfSupplyOverride ?? _selectedClient!.stateCode;
-    final isUnregistered = !_business!.isGstRegistered;
-
-    // For unregistered sellers, force 0% GST per item.
-    final effectiveInputs = isUnregistered
-        ? inputs.map((i) => InvoiceItemInput(
-              id: i.id,
-              description: i.description,
-              hsnSacCode: i.hsnSacCode,
-              quantity: i.quantity,
-              unitPrice: i.unitPrice,
-              gstRatePercent: 0,
-            )).toList()
-        : inputs;
-
-    final calc = calculateInvoiceGst(
-      items: effectiveInputs,
-      sellerStateCode: sellerState,
-      placeOfSupplyStateCode: placeOfSupply,
-    );
-
-    final repo = ref.read(invoiceRepositoryProvider);
-    if (_isEdit) {
-      await repo.update(
-        id: widget.invoiceId!,
-        invoiceNumber: _invoiceNumber.text.trim(),
-        clientId: _clientId!,
-        issueDate: _issueDate,
-        dueDate: _dueDate,
-        status: status,
-        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-        placeOfSupply: placeOfSupply,
-        subtotal: calc.subtotal,
-        cgstAmount: calc.cgst,
-        sgstAmount: calc.sgst,
-        igstAmount: calc.igst,
-        totalAmount: calc.total,
-        items: effectiveInputs,
-      );
-    } else {
-      final saved = await repo.create(
-        invoiceNumber: _invoiceNumber.text.trim(),
-        clientId: _clientId!,
-        issueDate: _issueDate,
-        dueDate: _dueDate,
-        status: status,
-        notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-        placeOfSupply: placeOfSupply,
-        subtotal: calc.subtotal,
-        cgstAmount: calc.cgst,
-        sgstAmount: calc.sgst,
-        igstAmount: calc.igst,
-        totalAmount: calc.total,
-        items: effectiveInputs,
-      );
-      // After create, jump to the preview.
-      if (mounted) {
-        ref.invalidate(invoiceListProvider);
-        // Schedule a reminder 1 day before due date (if set).
-        if (saved.invoice.dueDate != null) {
-          try {
-            await ref.read(reminderServiceProvider).scheduleFor(saved.invoice);
-          } catch (_) {}
-        }
-        setState(() => _saving = false);
-        context.go('/invoices/${saved.invoice.id}/preview');
-        return;
+    try {
+      // Pre-fill invoice number if empty.
+      if (_invoiceNumber.text.trim().isEmpty) {
+        final next = await ref.read(invoiceNumberServiceProvider).nextNumber();
+        _invoiceNumber.text = next;
       }
-    }
 
-    ref.invalidate(invoiceListProvider);
-    if (mounted) {
-      setState(() => _saving = false);
-      context.pop();
+      final inputs = _items
+          .where((r) => r.description.text.trim().isNotEmpty)
+          .map((r) => InvoiceItemInput(
+                id: r.id,
+                description: r.description.text.trim(),
+                hsnSacCode:
+                    r.hsn.text.trim().isEmpty ? null : r.hsn.text.trim(),
+                quantity: double.tryParse(r.qty.text) ?? 1,
+                unitPrice: double.tryParse(r.unitPrice.text) ?? 0,
+                gstRatePercent: r.gstRate,
+              ))
+          .toList();
+
+      final sellerState = _business!.stateCode;
+      final placeOfSupply =
+          _placeOfSupplyOverride ?? _selectedClient!.stateCode;
+      final isUnregistered = !_business!.isGstRegistered;
+
+      // For unregistered sellers, force 0% GST per item.
+      final effectiveInputs = isUnregistered
+          ? inputs
+              .map((i) => InvoiceItemInput(
+                    id: i.id,
+                    description: i.description,
+                    hsnSacCode: i.hsnSacCode,
+                    quantity: i.quantity,
+                    unitPrice: i.unitPrice,
+                    gstRatePercent: 0,
+                  ))
+              .toList()
+          : inputs;
+
+      final calc = calculateInvoiceGst(
+        items: effectiveInputs,
+        sellerStateCode: sellerState,
+        placeOfSupplyStateCode: placeOfSupply,
+      );
+
+      final repo = ref.read(invoiceRepositoryProvider);
+      if (_isEdit) {
+        await repo.update(
+          id: widget.invoiceId!,
+          invoiceNumber: _invoiceNumber.text.trim(),
+          clientId: _clientId!,
+          issueDate: _issueDate,
+          dueDate: _dueDate,
+          status: status,
+          notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          placeOfSupply: placeOfSupply,
+          subtotal: calc.subtotal,
+          cgstAmount: calc.cgst,
+          sgstAmount: calc.sgst,
+          igstAmount: calc.igst,
+          totalAmount: calc.total,
+          items: effectiveInputs,
+        );
+      } else {
+        final saved = await repo.create(
+          invoiceNumber: _invoiceNumber.text.trim(),
+          clientId: _clientId!,
+          issueDate: _issueDate,
+          dueDate: _dueDate,
+          status: status,
+          notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+          placeOfSupply: placeOfSupply,
+          subtotal: calc.subtotal,
+          cgstAmount: calc.cgst,
+          sgstAmount: calc.sgst,
+          igstAmount: calc.igst,
+          totalAmount: calc.total,
+          items: effectiveInputs,
+        );
+        // After create, jump to the preview.
+        if (mounted) {
+          ref.invalidate(invoiceListProvider);
+          // Schedule a reminder 1 day before due date (if set).
+          if (saved.invoice.dueDate != null) {
+            try {
+              await ref
+                  .read(reminderServiceProvider)
+                  .scheduleFor(saved.invoice);
+            } catch (_) {}
+          }
+          setState(() => _saving = false);
+          context.go('/invoices/${saved.invoice.id}/preview');
+          return;
+        }
+      }
+
+      ref.invalidate(invoiceListProvider);
+      if (mounted) {
+        setState(() => _saving = false);
+        context.pop();
+      }
+    } catch (e) {
+      // Never leave the loading spinner on after a failure.
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save invoice: $e')),
+        );
+      }
     }
   }
 
@@ -261,17 +276,22 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
     }
 
     return profileAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('Profile load error: $e'))),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) =>
+          Scaffold(body: Center(child: Text('Profile load error: $e'))),
       data: (profile) {
         _business = profile;
         return clientsAsync.when(
-          loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (e, _) => Scaffold(body: Center(child: Text('Clients load error: $e'))),
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, _) =>
+              Scaffold(body: Center(child: Text('Clients load error: $e'))),
           data: (clients) {
             _clients = clients;
             if (_clientId != null && _selectedClient == null) {
-              _selectedClient = _clients.where((c) => c.id == _clientId).firstOrNull;
+              _selectedClient =
+                  _clients.where((c) => c.id == _clientId).firstOrNull;
             }
             return _buildScaffold(context, profile!, clients);
           },
@@ -421,9 +441,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
                 isUnregistered: isUnregistered,
                 gstRates: _gstRates,
                 onChanged: () => setState(() {}),
-                onRemove: _items.length > 1
-                    ? () => _removeItem(i, row)
-                    : null,
+                onRemove: _items.length > 1 ? () => _removeItem(i, row) : null,
               );
             }),
             Align(
@@ -496,7 +514,8 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
                   onPressed: _saving ? null : () => _save(status: 'sent'),
                   child: _saving
                       ? const SizedBox(
-                          width: 20, height: 20,
+                          width: 20,
+                          height: 20,
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white),
                         )
@@ -533,8 +552,7 @@ class _InvoiceCreateScreenState extends ConsumerState<InvoiceCreateScreen> {
 }
 
 class _ItemRow {
-  _ItemRow({this.id})
-      : key = UniqueKey();
+  _ItemRow({this.id}) : key = UniqueKey();
 
   /// Stable identity for the widget tree — survives removal of sibling rows.
   final Key key;
@@ -551,7 +569,8 @@ class _ItemRow {
     return _ItemRow(id: i.id)
       ..description.text = i.description
       ..hsn.text = i.hsnSacCode ?? ''
-      ..qty.text = i.quantity.toStringAsFixed(i.quantity == i.quantity.toInt() ? 0 : 2)
+      ..qty.text =
+          i.quantity.toStringAsFixed(i.quantity == i.quantity.toInt() ? 0 : 2)
       ..unitPrice.text = i.unitPrice.toStringAsFixed(2)
       ..gstRate = i.gstRatePercent;
   }
@@ -633,7 +652,8 @@ class _ItemCard extends StatelessWidget {
                   flex: 1,
                   child: TextFormField(
                     controller: row.qty,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     onChanged: (_) => onChanged(),
                     decoration: const InputDecoration(labelText: 'Qty'),
                   ),
@@ -643,7 +663,8 @@ class _ItemCard extends StatelessWidget {
                   flex: 2,
                   child: TextFormField(
                     controller: row.unitPrice,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     onChanged: (_) => onChanged(),
                     decoration: const InputDecoration(
                       labelText: 'Unit price',
@@ -696,7 +717,20 @@ class _DateField extends StatelessWidget {
     final display = value == null
         ? '—'
         : '${value!.day.toString().padLeft(2, '0')} '
-            '${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][value!.month - 1]} '
+            '${[
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec'
+          ][value!.month - 1]} '
             '${value!.year}';
     return InkWell(
       onTap: onTap,

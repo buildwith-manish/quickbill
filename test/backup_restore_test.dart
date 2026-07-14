@@ -33,8 +33,13 @@ void main() {
 
   // Captures the full DB state into a plain map structure so we can compare
   // field-by-field after the wipe+restore cycle.
-  Future<({BusinessProfile? profile, List<Client> clients, List<Invoice> invoices, List<InvoiceItem> items})>
-      snapshot() async {
+  Future<
+      ({
+        BusinessProfile? profile,
+        List<Client> clients,
+        List<Invoice> invoices,
+        List<InvoiceItem> items
+      })> snapshot() async {
     final profile = await profileRepo.get();
     final clients = await clientRepo.all();
     final invoices = await invoiceRepo.all();
@@ -42,10 +47,16 @@ void main() {
     for (final inv in invoices) {
       allItems.addAll(await invoiceRepo.itemsFor(inv.id));
     }
-    return (profile: profile, clients: clients, invoices: invoices, items: allItems);
+    return (
+      profile: profile,
+      clients: clients,
+      invoices: invoices,
+      items: allItems
+    );
   }
 
-  test('backup/restore round trip preserves all records field-by-field', () async {
+  test('backup/restore round trip preserves all records field-by-field',
+      () async {
     // --- Seed initial state ---
     await profileRepo.upsert(BusinessProfilesCompanion.insert(
       businessName: 'Anjali Sharma Design Studio',
@@ -90,7 +101,11 @@ void main() {
       igstAmount: 1800,
       totalAmount: 11800,
       items: const [
-        InvoiceItemInput(description: 'Design', quantity: 1, unitPrice: 10000, gstRatePercent: 18),
+        InvoiceItemInput(
+            description: 'Design',
+            quantity: 1,
+            unitPrice: 10000,
+            gstRatePercent: 18),
       ],
     );
     await invoiceRepo.create(
@@ -107,8 +122,17 @@ void main() {
       igstAmount: 0,
       totalAmount: 5900,
       items: const [
-        InvoiceItemInput(description: 'Consulting', quantity: 5, unitPrice: 1000, gstRatePercent: 18),
-        InvoiceItemInput(description: 'Extra', hsnSacCode: '998314', quantity: 1, unitPrice: 0, gstRatePercent: 0),
+        InvoiceItemInput(
+            description: 'Consulting',
+            quantity: 5,
+            unitPrice: 1000,
+            gstRatePercent: 18),
+        InvoiceItemInput(
+            description: 'Extra',
+            hsnSacCode: '998314',
+            quantity: 1,
+            unitPrice: 0,
+            gstRatePercent: 0),
       ],
     );
     await invoiceRepo.create(
@@ -125,7 +149,11 @@ void main() {
       igstAmount: 360,
       totalAmount: 2360,
       items: const [
-        InvoiceItemInput(description: 'Service', quantity: 2, unitPrice: 1000, gstRatePercent: 18),
+        InvoiceItemInput(
+            description: 'Service',
+            quantity: 2,
+            unitPrice: 1000,
+            gstRatePercent: 18),
       ],
     );
 
@@ -164,46 +192,46 @@ void main() {
     // a raw insert (the repo's create() generates new UUIDs, so we go direct).
     for (final c in before.clients) {
       await db.into(db.clients).insert(ClientsCompanion.insert(
-        id: c.id,
-        name: c.name,
-        stateCode: c.stateCode,
-        gstin: Value(c.gstin),
-        address: Value(c.address),
-        email: Value(c.email),
-        phone: Value(c.phone),
-      ));
+            id: c.id,
+            name: c.name,
+            stateCode: c.stateCode,
+            gstin: Value(c.gstin),
+            address: Value(c.address),
+            email: Value(c.email),
+            phone: Value(c.phone),
+          ));
     }
 
     for (final inv in before.invoices) {
       await db.into(db.invoices).insert(InvoicesCompanion.insert(
-        id: inv.id,
-        invoiceNumber: inv.invoiceNumber,
-        clientId: inv.clientId,
-        issueDate: inv.issueDate,
-        dueDate: Value(inv.dueDate),
-        status: Value(inv.status),
-        notes: Value(inv.notes),
-        placeOfSupply: inv.placeOfSupply,
-        subtotal: Value(inv.subtotal),
-        cgstAmount: Value(inv.cgstAmount),
-        sgstAmount: Value(inv.sgstAmount),
-        igstAmount: Value(inv.igstAmount),
-        totalAmount: Value(inv.totalAmount),
-        createdAt: Value(inv.createdAt),
-      ));
+            id: inv.id,
+            invoiceNumber: inv.invoiceNumber,
+            clientId: inv.clientId,
+            issueDate: inv.issueDate,
+            dueDate: Value(inv.dueDate),
+            status: Value(inv.status),
+            notes: Value(inv.notes),
+            placeOfSupply: inv.placeOfSupply,
+            subtotal: Value(inv.subtotal),
+            cgstAmount: Value(inv.cgstAmount),
+            sgstAmount: Value(inv.sgstAmount),
+            igstAmount: Value(inv.igstAmount),
+            totalAmount: Value(inv.totalAmount),
+            createdAt: Value(inv.createdAt),
+          ));
     }
 
     for (final it in before.items) {
       await db.into(db.invoiceItems).insert(InvoiceItemsCompanion.insert(
-        id: it.id,
-        invoiceId: it.invoiceId,
-        description: it.description,
-        hsnSacCode: Value(it.hsnSacCode),
-        quantity: Value(it.quantity),
-        unitPrice: Value(it.unitPrice),
-        gstRatePercent: Value(it.gstRatePercent),
-        lineTotal: Value(it.lineTotal),
-      ));
+            id: it.id,
+            invoiceId: it.invoiceId,
+            description: it.description,
+            hsnSacCode: Value(it.hsnSacCode),
+            quantity: Value(it.quantity),
+            unitPrice: Value(it.unitPrice),
+            gstRatePercent: Value(it.gstRatePercent),
+            lineTotal: Value(it.lineTotal),
+          ));
     }
 
     // --- Assert all records match the pre-export state field-by-field ---
@@ -236,8 +264,10 @@ void main() {
     // Invoices
     expect(after.invoices.length, before.invoices.length);
     // Sort by invoiceNumber for stable comparison (all() returns by createdAt desc).
-    final sortedBefore = [...before.invoices]..sort((a, b) => a.invoiceNumber.compareTo(b.invoiceNumber));
-    final sortedAfter = [...after.invoices]..sort((a, b) => a.invoiceNumber.compareTo(b.invoiceNumber));
+    final sortedBefore = [...before.invoices]
+      ..sort((a, b) => a.invoiceNumber.compareTo(b.invoiceNumber));
+    final sortedAfter = [...after.invoices]
+      ..sort((a, b) => a.invoiceNumber.compareTo(b.invoiceNumber));
     for (var i = 0; i < sortedBefore.length; i++) {
       final a = sortedAfter[i];
       final b = sortedBefore[i];
@@ -258,8 +288,10 @@ void main() {
 
     // Items
     expect(after.items.length, before.items.length);
-    final sortedItemsBefore = [...before.items]..sort((a, b) => a.id.compareTo(b.id));
-    final sortedItemsAfter = [...after.items]..sort((a, b) => a.id.compareTo(b.id));
+    final sortedItemsBefore = [...before.items]
+      ..sort((a, b) => a.id.compareTo(b.id));
+    final sortedItemsAfter = [...after.items]
+      ..sort((a, b) => a.id.compareTo(b.id));
     for (var i = 0; i < sortedItemsBefore.length; i++) {
       final a = sortedItemsAfter[i];
       final b = sortedItemsBefore[i];

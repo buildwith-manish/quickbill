@@ -14,8 +14,7 @@ class BusinessProfileRepository {
 
   /// Returns the profile, or null if onboarding hasn't happened yet.
   Future<BusinessProfile?> get() async {
-    return (_db.select(_db.businessProfiles)
-          ..where((t) => t.id.equals(_id)))
+    return (_db.select(_db.businessProfiles)..where((t) => t.id.equals(_id)))
         .getSingleOrNull();
   }
 
@@ -28,8 +27,7 @@ class BusinessProfileRepository {
   }
 
   Future<void> delete() async {
-    await (_db.delete(_db.businessProfiles)
-          ..where((t) => t.id.equals(_id)))
+    await (_db.delete(_db.businessProfiles)..where((t) => t.id.equals(_id)))
         .go();
   }
 

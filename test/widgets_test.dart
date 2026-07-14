@@ -23,8 +23,7 @@ void main() {
       );
 
       expect(find.text('No invoices yet'), findsOneWidget);
-      expect(
-          find.text('Tap the + button to create your first invoice.'),
+      expect(find.text('Tap the + button to create your first invoice.'),
           findsOneWidget);
       expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
     });

@@ -58,7 +58,8 @@ class InvoiceNumberService {
     final existing = await (_db.select(_db.seqCounters)
           ..where((t) => t.key.equals(fyLabel)))
         .getSingleOrNull();
-    final newSeq = (existing?.lastSeq ?? 0) > seq ? (existing?.lastSeq ?? 0) : seq;
+    final newSeq =
+        (existing?.lastSeq ?? 0) > seq ? (existing?.lastSeq ?? 0) : seq;
     await _db.into(_db.seqCounters).insertOnConflictUpdate(
           SeqCountersCompanion.insert(
             key: fyLabel,

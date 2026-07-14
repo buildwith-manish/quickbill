@@ -52,7 +52,7 @@ class _ClientListScreenState extends ConsumerState<ClientListScreen> {
                     title: _query.isEmpty ? 'No clients yet' : 'No matches',
                     message: _query.isEmpty
                         ? 'Add your first client to start invoicing them. '
-                          'GSTIN is optional — freelancers can invoice unregistered clients too.'
+                            'GSTIN is optional — freelancers can invoice unregistered clients too.'
                         : 'Try a different name or GSTIN.',
                     actionLabel: _query.isEmpty ? 'Add client' : null,
                     onAction: _query.isEmpty
@@ -62,7 +62,8 @@ class _ClientListScreenState extends ConsumerState<ClientListScreen> {
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   itemCount: filtered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 6),
                   itemBuilder: (context, i) {
@@ -89,7 +90,8 @@ class _ClientListScreenState extends ConsumerState<ClientListScreen> {
                       child: Card(
                         child: ListTile(
                           title: Text(c.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w600)),
                           subtitle: Text(
                             c.gstin != null && c.gstin!.isNotEmpty
                                 ? 'GSTIN: ${c.gstin}'

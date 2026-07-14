@@ -40,7 +40,8 @@ Future<Invoice?> invoiceById(InvoiceByIdRef ref, String id) async {
 
 /// Line items for a given invoice id.
 @riverpod
-Future<List<InvoiceItem>> invoiceItems(InvoiceItemsRef ref, String invoiceId) async {
+Future<List<InvoiceItem>> invoiceItems(
+    InvoiceItemsRef ref, String invoiceId) async {
   return ref.watch(invoiceRepositoryProvider).itemsFor(invoiceId);
 }
 
