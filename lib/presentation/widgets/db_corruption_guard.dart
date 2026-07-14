@@ -114,7 +114,7 @@ class _DbCorruptionGuardState extends ConsumerState<DbCorruptionGuard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'QuickBill couldn\'t open its local database. This usually '
+                  'Invory couldn\'t open its local database. This usually '
                   'happens after a system update or storage issue. Resetting '
                   'the database will let the app run again, but all saved '
                   'data will be lost.',

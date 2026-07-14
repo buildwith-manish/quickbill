@@ -113,7 +113,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
     // Fire-and-forget — denial is non-fatal and never blocks the user.
     // We ask here (not on cold start) so the user has context for the
     // request: they've just set up their business and understand why
-    // QuickBill wants to send due-date reminders.
+    // Invory wants to send due-date reminders.
     unawaited(ReminderService.requestPermissions());
 
     if (mounted) {
@@ -142,7 +142,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                 size: 48, color: theme.colorScheme.primary),
             const SizedBox(height: 8),
             Text(
-              'Tell QuickBill about your business so invoices carry your details automatically.',
+              'Tell Invory about your business so invoices carry your details automatically.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

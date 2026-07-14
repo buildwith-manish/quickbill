@@ -1,31 +1,47 @@
 import 'package:flutter/material.dart';
 
-/// Material 3 theme tuned for an invoicing app — calm, business-formal,
-/// with a single accent color (deep indigo) and clear hierarchy.
+/// Invory brand theme — modern, premium, global-first.
+///
+/// Brand palette (per rebrand spec):
+///   Primary    #2563EB  (blue-600)
+///   Secondary  #3B82F6  (blue-500)
+///   Accent     #10B981  (emerald-500)
+///   Background #F8FAFC  (slate-50)
+///   Surface    #FFFFFF
+///   Text       #0F172A  (slate-900)
 class AppTheme {
   AppTheme._();
 
-  static const Color _seed = Color(0xFF1F4E8C); // deep indigo-blue
-  static const Color _accent = Color(0xFFEF8A17); // saffron accent
+  // Brand colors — single source of truth.
+  static const Color _primary = Color(0xFF2563EB); // #2563EB
+  static const Color _secondary = Color(0xFF3B82F6); // #3B82F6
+  static const Color _accent = Color(0xFF10B981); // #10B981
+  static const Color _background = Color(0xFFF8FAFC); // #F8FAFC
+  static const Color _surface = Color(0xFFFFFFFF); // #FFFFFF
+  static const Color _text = Color(0xFF0F172A); // #0F172A
 
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
-      seedColor: _seed,
+      seedColor: _primary,
       brightness: Brightness.light,
+      primary: _primary,
+      secondary: _secondary,
+      surface: _surface,
+      onSurface: _text,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: const Color(0xFFF7F8FA),
+      scaffoldBackgroundColor: _background,
       appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surface,
-        foregroundColor: scheme.onSurface,
+        backgroundColor: _surface,
+        foregroundColor: _text,
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
-        titleTextStyle: TextStyle(
-          color: scheme.onSurface,
+        titleTextStyle: const TextStyle(
+          color: _text,
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
@@ -35,13 +51,13 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        color: scheme.surface,
+        color: _surface,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surface,
+        fillColor: _surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: scheme.outlineVariant),
@@ -52,7 +68,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: scheme.primary, width: 1.5),
+          borderSide: const BorderSide(color: _primary, width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -83,15 +99,15 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: scheme.surface,
-        selectedItemColor: scheme.primary,
+        backgroundColor: _surface,
+        selectedItemColor: _primary,
         unselectedItemColor: scheme.onSurfaceVariant,
         showUnselectedLabels: true,
         elevation: 0,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: Color.lerp(scheme.surface, scheme.onSurface, 0.05)!,
-        labelStyle: TextStyle(color: scheme.onSurface),
+        backgroundColor: Color.lerp(_surface, _text, 0.05)!,
+        labelStyle: const TextStyle(color: _text),
         side: BorderSide.none,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -103,11 +119,11 @@ class AppTheme {
         space: 1,
       ),
       extensions: [
-        AppColors(
+        const AppColors(
           accent: _accent,
-          success: const Color(0xFF2E7D32),
-          warning: const Color(0xFFB26A00),
-          danger: const Color(0xFFC62828),
+          success: Color(0xFF10B981), // emerald-500
+          warning: Color(0xFFF59E0B), // amber-500
+          danger: Color(0xFFEF4444), // red-500
         ),
       ],
     );

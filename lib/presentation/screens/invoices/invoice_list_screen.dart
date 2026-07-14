@@ -128,7 +128,7 @@ class _InvoiceListScreenState extends ConsumerState<InvoiceListScreen> {
                       title: 'No invoices yet',
                       message: _filter == _InvoiceFilter.all
                           ? 'Tap the + button below to create your first invoice. '
-                              'QuickBill handles CGST/SGST vs IGST automatically based on '
+                              'Invory handles CGST/SGST vs IGST automatically based on '
                               'your state and the client\'s state.'
                           : 'No ${_filter.label.toLowerCase()} invoices right now.',
                       actionLabel:

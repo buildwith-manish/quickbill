@@ -184,14 +184,14 @@ class _ProfileListenable extends ChangeNotifier {
   final Ref _ref;
 }
 
-class QuickBillApp extends ConsumerWidget {
-  const QuickBillApp({super.key});
+class InvoryApp extends ConsumerWidget {
+  const InvoryApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
-      title: 'QuickBill',
+      title: 'Invory',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       localizationsDelegates: const [

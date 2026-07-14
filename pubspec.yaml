@@ -1,7 +1,7 @@
 name: quickbill
-description: "QuickBill — A GST-compliant invoice generator for solo Indian freelancers. Offline-first, no backend, no auth."
+description: "Invory — Offline-first invoicing app for freelancers, small businesses, and growing companies. Professional Invoicing. Anywhere."
 publish_to: "none"
-version: 1.1.0+2
+version: 1.2.0+3
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -47,9 +47,9 @@ flutter_launcher_icons:
   image_path: "assets/icon/icon.png"
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
-  # NOTE: icon.png and icon_foreground.png are PLACEHOLDER assets generated
-  # programmatically (saffron "Q" monogram on white). Replace with a real
-  # designed icon before Play Store submission.
+  # NOTE: icon.png and icon_foreground.png are PLACEHOLDER brand assets
+  # generated programmatically (blue "I"-invoice mark on white). Replace
+  # with a designer-crafted version before production launch.
 
 flutter:
   uses-material-design: true

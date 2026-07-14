@@ -1,10 +1,10 @@
-# QuickBill — Play Store Listing
+# Invory — Play Store Listing
 
 ## Short description (80 chars max)
-GST invoice maker for Indian freelancers. Offline. No login.
+Offline invoicing for freelancers. GST invoices, PDFs, clients. No login.
 
 ## Full description (4000 chars max)
-QuickBill is a GST-compliant invoice generator designed for solo Indian freelancers and small businesses. Create professional tax invoices with automatic CGST/SGST/IGST calculation, share PDFs instantly, and keep all your data private on your device.
+Invory is an offline-first invoicing app built for freelancers, small businesses, and growing companies. Create professional invoices, manage clients, generate PDFs, and keep your business organized anywhere — even without an internet connection.
 
 **Works completely offline. No login. No cloud. No subscriptions.**
 
@@ -22,7 +22,7 @@ QuickBill is a GST-compliant invoice generator designed for solo Indian freelanc
 
 • **Payment reminders** — Local notifications 1 day before due dates and a daily overdue check. No push notifications, no servers.
 
-• **Backup & restore** — Export your database to a file and share it via WhatsApp, email, or Drive. Restore on a new device in seconds.
+• **Backup & restore** — Export your database to a file and share it via WhatsApp, email, or Drive. Restore on a new device in seconds. Old QuickBill backups can still be imported.
 
 • **Hindi & English** — Full localization in both languages.
 
@@ -37,10 +37,10 @@ QuickBill is a GST-compliant invoice generator designed for solo Indian freelanc
 
 ### Disclaimer
 
-QuickBill helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Always verify tax calculations before filing returns.
+Invory helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Always verify tax calculations before filing returns.
 
 ## Keywords (comma-separated)
-GST invoice, invoice maker, billing app, freelancer invoice, Indian GST, tax invoice, CGST SGST IGST, billing, invoice generator, QuickBill
+GST invoice, invoice maker, billing app, freelancer invoice, Indian GST, tax invoice, CGST SGST IGST, billing, invoice generator, Invory
 
 ## App category
 Business
@@ -56,6 +56,18 @@ https://github.com/buildwith-manish/quickbill/blob/main/PRIVACY_POLICY.md
 
 ## Support email
 buildwith-manish@users.noreply.github.com
+
+## Release notes (v1.2.0)
+
+Rebrand to Invory — Professional Invoicing. Anywhere.
+
+• New brand identity: Invory (formerly QuickBill)
+• New app icon: blue "I"-invoice mark
+• Updated color palette: blue primary, emerald accent
+• PDF footer now reads "Generated with Invory"
+• Backup files renamed to invory-backup-*.sqlite (old quickbill-backup files still importable)
+• Full English + Hindi localization parity
+• All existing data preserved — backward compatible
 
 ## Release notes (v1.0.0)
 

@@ -12,10 +12,10 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: Center(child: Text('QuickBill')),
+          body: Center(child: Text('Invory')),
         ),
       ),
     );
-    expect(find.text('QuickBill'), findsOneWidget);
+    expect(find.text('Invory'), findsOneWidget);
   });
 }

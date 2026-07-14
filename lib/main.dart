@@ -18,7 +18,7 @@ Future<void> main() async {
 
   runApp(
     const ProviderScope(
-      child: QuickBillApp(),
+      child: InvoryApp(),
     ),
   );
 }

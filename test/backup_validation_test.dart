@@ -80,7 +80,7 @@ void main() {
     test('valid SQLite header is accepted past the header check', () async {
       // Create a valid SQLite file — the header check should pass.
       // Subsequent validation (tables check) will fail because this file
-      // has no QuickBill tables, but the failure must be a
+      // has no Invory tables, but the failure must be a
       // BackupValidationException, not a crash.
       final validSqlitePath = p.join(tempDir.path, 'valid-sqlite.sqlite');
       final validDb = AppDatabase.forTesting(

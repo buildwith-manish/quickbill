@@ -27,7 +27,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QuickBill'),
+        title: const Text('Invory'),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),

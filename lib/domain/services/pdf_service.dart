@@ -43,7 +43,7 @@ class PdfService {
       build: (ctx) => _buildContent(data, ctx),
       footer: (ctx) => pw.Center(
         child: pw.Text(
-          'This is a computer-generated invoice.',
+          'Generated with Invory',
           style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
         ),
       ),

@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appName": "QuickBill",
+  "appName": "Invory",
   "newInvoice": "New Invoice",
   "@newInvoice": {},
   "save": "Save",
@@ -31,10 +31,14 @@
   "resetAllData": "Reset all data",
   "disclaimerTitle": "Disclaimer",
   "@disclaimerTitle": {},
-  "disclaimerFull": "QuickBill helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Always verify tax calculations before filing returns.",
+  "disclaimerFull": "Invory helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Always verify tax calculations before filing returns.",
   "@disclaimerFull": {},
-  "disclaimerShort": "QuickBill generates GST-compliant invoices but is not a substitute for professional tax advice. Always verify tax calculations before filing returns.",
+  "disclaimerShort": "Invory generates GST-compliant invoices but is not a substitute for professional tax advice. Always verify tax calculations before filing returns.",
   "@disclaimerShort": {},
   "gotIt": "Got it",
-  "@gotIt": {}
+  "@gotIt": {},
+  "tagline": "Professional Invoicing. Anywhere.",
+  "@tagline": {},
+  "aboutDescription": "Invory is an offline-first invoicing app built for freelancers, small businesses, and growing companies. Create professional invoices, manage clients, generate PDFs, and keep your business organized anywhere—even without an internet connection.",
+  "@aboutDescription": {}
 }

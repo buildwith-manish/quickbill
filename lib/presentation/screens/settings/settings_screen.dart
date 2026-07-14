@@ -356,9 +356,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const SizedBox(height: 32),
             _SectionHeader(
               icon: Icons.info_outline,
-              title: 'About QuickBill',
+              title: 'About Invory',
               subtitle:
-                  'QuickBill v1.1.0 • Offline-first • No login, no cloud sync. '
+                  'Invory v1.2.0 • Offline-first • No login, no cloud sync. '
                   'All data is stored on this device only.',
               colors: colors,
             ),

@@ -54,12 +54,12 @@ class BackupService {
       final stamp =
           '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
       final tmpDir = await getTemporaryDirectory();
-      final destPath = p.join(tmpDir.path, 'quickbill-backup-$stamp.sqlite');
+      final destPath = p.join(tmpDir.path, 'invory-backup-$stamp.sqlite');
       await srcFile.copy(destPath);
 
       await Share.shareXFiles(
         [XFile(destPath)],
-        text: 'QuickBill backup $stamp',
+        text: 'Invory backup $stamp',
       );
 
       // Record the backup so the nudge banner stops showing. Count invoices
@@ -93,7 +93,7 @@ class BackupService {
   ///
   /// On success: the current DB is closed, the validated file is copied over
   /// the production path, and the pre-import DB is preserved as
-  /// `quickbill.sqlite.preimport.bak` for manual rollback.
+  /// `invory.sqlite.preimport.bak` for manual rollback.
   ///
   /// On failure: the production DB is untouched, a [BackupValidationException]
   /// is thrown with a user-friendly message, and any temp files are cleaned up.
@@ -106,7 +106,7 @@ class BackupService {
     // 1. Existence + extension check.
     if (!await srcFile.exists()) {
       throw const BackupValidationException(
-        'Backup file not found. Please pick a valid QuickBill backup file.',
+        'Backup file not found. Please pick a valid Invory backup file.',
       );
     }
     final ext = p.extension(srcPath).toLowerCase();
@@ -123,7 +123,7 @@ class BackupService {
     const magic = 'SQLite format 3\u0000';
     if (header.length < 16 || String.fromCharCodes(header) != magic) {
       throw const BackupValidationException(
-        'This file is not a valid SQLite database. It may be corrupted or not a QuickBill backup.',
+        'This file is not a valid SQLite database. It may be corrupted or not an Invory backup.',
       );
     }
 
@@ -151,7 +151,7 @@ class BackupService {
         final currentVersion = _db.schemaVersion;
         if (fileVersion > currentVersion) {
           throw BackupValidationException(
-            'Backup schema version $fileVersion is newer than this app supports ($currentVersion). Please update QuickBill.',
+            'Backup schema version $fileVersion is newer than this app supports ($currentVersion). Please update Invory.',
           );
         }
 
@@ -176,7 +176,7 @@ class BackupService {
             .get();
         if (tables.length < 4) {
           throw const BackupValidationException(
-            'This SQLite file does not contain the expected QuickBill tables. It may be from a different app.',
+            'This SQLite file does not contain the expected Invory tables. It may be from a different app.',
           );
         }
       } finally {

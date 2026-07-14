@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      QuickBill is fully offline. The INTERNET permission is intentionally
+      Invory is fully offline. The INTERNET permission is intentionally
       NOT requested — the app makes zero network calls. (share_plus may need
       it on some Android versions for the share sheet itself; if so, it will
       be added then. For now, ship without it.)
@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
-        android:label="QuickBill"
+        android:label="Invory"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="false">

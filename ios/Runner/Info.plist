@@ -5,7 +5,7 @@
         <key>CFBundleDevelopmentRegion</key>
         <string>$(DEVELOPMENT_LANGUAGE)</string>
         <key>CFBundleDisplayName</key>
-        <string>Quickbill</string>
+        <string>Invory</string>
         <key>CFBundleExecutable</key>
         <string>$(EXECUTABLE_NAME)</string>
         <key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
         <key>CFBundleInfoDictionaryVersion</key>
         <string>6.0</string>
         <key>CFBundleName</key>
-        <string>quickbill</string>
+        <string>invory</string>
         <key>CFBundlePackageType</key>
         <string>APPL</string>
         <key>CFBundleShortVersionString</key>
@@ -49,10 +49,10 @@
         <!-- Privacy permission strings — required by iOS for camera/photo access. -->
         <!-- Used by image_picker (logo upload) and share_plus (PDF export). -->
         <key>NSCameraUsageDescription</key>
-        <string>QuickBill uses the camera to capture your business logo for invoices.</string>
+        <string>Invory uses the camera to capture your business logo for invoices.</string>
         <key>NSPhotoLibraryUsageDescription</key>
-        <string>QuickBill accesses your photo library to select a business logo for invoices.</string>
+        <string>Invory accesses your photo library to select a business logo for invoices.</string>
         <key>NSPhotoLibraryAddUsageDescription</key>
-        <string>QuickBill can save generated invoice PDFs to your photo library.</string>
+        <string>Invory can save generated invoice PDFs to your photo library.</string>
 </dict>
 </plist>

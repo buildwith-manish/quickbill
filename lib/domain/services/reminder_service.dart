@@ -122,7 +122,7 @@ class ReminderService {
       await _notifications.zonedSchedule(
         0, // ID 0 = daily overdue check
         'Overdue invoices',
-        'You have overdue invoices. Open QuickBill to review.',
+        'You have overdue invoices. Open Invory to review.',
         when,
         const NotificationDetails(
           android: AndroidNotificationDetails(
