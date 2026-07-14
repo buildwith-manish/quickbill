@@ -1,32 +1,46 @@
 # Invory — Play Store Listing
 
-## Short description (80 chars max)
-Offline invoicing for freelancers. GST invoices, PDFs, clients. No login.
+## App title (Play Store, ~30 char)
+Invory: GST Invoice, No Login
+
+## Short description (80 char)
+Offline GST invoices. No login, no cloud, no subscription. Just bill & go.
 
 ## Full description (4000 chars max)
-Invory is an offline-first invoicing app built for freelancers, small businesses, and growing companies. Create professional invoices, manage clients, generate PDFs, and keep your business organized anywhere — even without an internet connection.
+Tired of invoicing apps that force you to sign up, sync to the cloud,
+and lock features behind a subscription just to bill a client?
 
-**Works completely offline. No login. No cloud. No subscriptions.**
+Invory is different — by design.
+
+✓ NO LOGIN — open the app and start billing in 10 seconds
+✓ NO CLOUD — your business data stays on your phone, always
+✓ NO SUBSCRIPTION TRAP — one-time setup, no recurring fees, no upsell calls
+✓ CORRECT GST — automatic CGST/SGST vs IGST based on place of supply
+✓ WORKS OFFLINE — no signal? No problem. Bill from anywhere.
+✓ YOUR DATA, YOUR CONTROL — one-tap backup/export, restore anytime,
+  nothing held hostage on someone else's server
+
+Built for freelancers and solo service providers who need fast,
+GST-compliant invoices — not a full accounting suite with inventory,
+staff logins, and features you'll never use.
+
+Create client → Add items → Get a professional GST PDF → Share on
+WhatsApp. That's it.
 
 ### Features
 
-• **GST-compliant invoices** — Automatic CGST/SGST split for intrastate transactions, IGST for interstate. Supports all GST slabs (0%, 5%, 12%, 18%, 28%).
-
-• **Unregistered seller support** — Below the ₹20L threshold? Toggle "Not GST registered" and invoices omit tax lines automatically with the required disclaimer.
-
-• **Professional PDF invoices** — Tax invoice format with your logo, business details, HSN/SAC codes, amount in words, bank/UPI details, and place of supply. Indian lakh/crore currency formatting.
-
-• **Smart invoice numbering** — Sequential per financial year (INV/2026-27/0001). Auto-increments, with manual override option.
-
-• **Client management** — Store client details with GSTIN auto-validation. State code auto-derived from GSTIN.
-
-• **Payment reminders** — Local notifications 1 day before due dates and a daily overdue check. No push notifications, no servers.
-
-• **Backup & restore** — Export your database to a file and share it via WhatsApp, email, or Drive. Restore on a new device in seconds. Old QuickBill backups can still be imported.
-
-• **Hindi & English** — Full localization in both languages.
-
-• **Private by design** — All data stays on your device. No analytics, no tracking, no network calls. The app works in airplane mode.
+• GST-compliant invoices with automatic CGST/SGST/IGST
+• Discount support (flat or percentage, applied before tax)
+• Partial payment tracking — mark invoices as partially paid
+• Quotations — create quotes, convert to invoices with one tap
+• Two PDF templates — Minimal and Classic
+• Sequential invoice numbering per financial year
+• Client management with GSTIN auto-validation
+• Payment due-date reminders (local notifications, no push)
+• Backup & restore via file export
+• "Your Data" screen — see exactly where your data lives
+• English + Hindi localization
+• Works fully offline — no network permissions requested
 
 ### Who is it for?
 
@@ -40,7 +54,7 @@ Invory is an offline-first invoicing app built for freelancers, small businesses
 Invory helps generate GST-compliant invoice formats but is not a substitute for professional accounting or tax advice. Always verify tax calculations before filing returns.
 
 ## Keywords (comma-separated)
-GST invoice, invoice maker, billing app, freelancer invoice, Indian GST, tax invoice, CGST SGST IGST, billing, invoice generator, Invory
+gst invoice, invoice maker, offline invoice app, gst billing app, invoice without login, free gst invoice no subscription, local invoice app india
 
 ## App category
 Business
@@ -57,27 +71,25 @@ https://github.com/buildwith-manish/quickbill/blob/main/PRIVACY_POLICY.md
 ## Support email
 buildwith-manish@users.noreply.github.com
 
-## Release notes (v1.2.0)
+## Screenshot sequence (5-6 shots, this order)
+1. Home screen with "No login required" visible in trust card
+2. Invoice create screen mid-fill (shows speed)
+3. GST breakdown on preview (CGST/SGST split visible — proves correctness)
+4. WhatsApp share sheet open (proves the actual delivery moment)
+5. Settings → "Your Data" screen (proves the privacy claim, not just states it)
+6. Backup/export confirmation screen
 
-Rebrand to Invory — Professional Invoicing. Anywhere.
+## Release notes (v1.3.0)
 
-• New brand identity: Invory (formerly QuickBill)
-• New app icon: blue "I"-invoice mark
-• Updated color palette: blue primary, emerald accent
-• PDF footer now reads "Generated with Invory"
-• Backup files renamed to invory-backup-*.sqlite (old quickbill-backup files still importable)
-• Full English + Hindi localization parity
-• All existing data preserved — backward compatible
+Competitive build — closes the real feature gaps vs. legacy billing apps.
 
-## Release notes (v1.0.0)
-
-Initial release.
-
-• GST-compliant invoice generation with CGST/SGST/IGST
-• Offline-first — no login, no cloud, no network
-• PDF export with Indian currency formatting
-• Sequential invoice numbering per financial year
-• Client management with GSTIN validation
-• Payment due-date reminders
-• Backup & restore via file export
-• English and Hindi localization
+• NEW: "Your Data" screen — see your DB file path, size, and export anytime
+• NEW: First-launch trust card on onboarding ("No account. No cloud.")
+• NEW: Discount support (flat ₹ or %, applied before tax per GST rules)
+• NEW: Partial payment tracking — record amount paid, see balance due
+• NEW: Quotations — create quotes with QTN/ prefix, convert to invoices
+• NEW: Backup nudge after every 10 new invoices (not just time-based)
+• NEW: PDF renders discount line + "Amount Paid / Balance Due"
+• NEW: Quotation PDFs show "QUOTATION" header instead of "TAX INVOICE"
+• Improved: Backup nudge logic (proactive, not just time-based)
+• All existing data preserved — backward compatible (schema v3 migration)

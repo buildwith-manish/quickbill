@@ -45,6 +45,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
   String? _logoPath;
   bool _isGstRegistered = true;
   bool _disclaimerDismissed = false;
+  bool _trustDismissed = false;
   bool _saving = false;
 
   @override
@@ -149,6 +150,16 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
+            // First-launch trust card — sets the tone before the user does
+            // anything. Dismissible, shown once per onboarding session.
+            if (!_trustDismissed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _TrustCard(
+                  onDismiss: () => setState(() => _trustDismissed = true),
+                ),
+              ),
 
             // Non-blocking disclaimer banner — dismissible, shown once during
             // onboarding. The full disclaimer lives in Settings.
@@ -506,6 +517,52 @@ class _DisclaimerBanner extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// First-launch trust card — 3-line copy that sets the privacy tone.
+/// Dismissible, shown once per onboarding session.
+class _TrustCard extends StatelessWidget {
+  const _TrustCard({required this.onDismiss});
+
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = appColors(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: colors.accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colors.accent.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.shield_outlined, size: 20, color: colors.accent),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'No account. No cloud. Your invoices never leave this phone unless you share them.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16),
+            onPressed: onDismiss,
+            tooltip: 'Dismiss',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
           ),
         ],
       ),

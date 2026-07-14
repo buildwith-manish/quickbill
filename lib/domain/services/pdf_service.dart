@@ -170,7 +170,7 @@ class PdfService {
 
     final rightChildren = <pw.Widget>[
       pw.Text(
-        isUnregistered ? 'INVOICE' : 'TAX INVOICE',
+        _documentTitle(data),
         style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
       ),
       pw.SizedBox(height: 4),
@@ -315,6 +315,18 @@ class PdfService {
       _summaryRow('Subtotal', _fmtRupee(data.gst.subtotal)),
     ];
 
+    // v3: discount line (before tax).
+    if (data.gst.discountAmount > 0) {
+      rows.add(_summaryRow(
+        'Discount',
+        '- ${_fmtRupee(data.gst.discountAmount)}',
+      ));
+      rows.add(_summaryRow(
+        'Taxable Amount',
+        _fmtRupee(data.gst.taxableAmount),
+      ));
+    }
+
     if (isUnregistered) {
       // Explicit disclaimer line.
       rows.add(_summaryRow(
@@ -334,6 +346,18 @@ class PdfService {
 
     rows.add(
         _summaryRow('Total Amount', _fmtRupee(data.gst.total), bold: true));
+
+    // v3: payment status — show amount paid + balance due when partially paid.
+    final amountPaid = data.invoice.amountPaid;
+    if (amountPaid > 0 && amountPaid < data.gst.total) {
+      rows.add(_summaryRow('Amount Paid', _fmtRupee(amountPaid)));
+      final balance = data.gst.total - amountPaid;
+      rows.add(_summaryRow(
+        'Balance Due',
+        _fmtRupee(balance),
+        bold: true,
+      ));
+    }
 
     return pw.Align(
       alignment: pw.Alignment.centerRight,
@@ -428,6 +452,16 @@ class PdfService {
   }
 
   // ---------- Helpers ----------
+
+  /// Returns the document title for the PDF header.
+  /// Quotations show "QUOTATION", unregistered sellers show "INVOICE",
+  /// registered sellers show "TAX INVOICE".
+  String _documentTitle(PdfInvoiceData data) {
+    if (data.invoice.documentType == 'quotation') {
+      return 'QUOTATION';
+    }
+    return data.business.isGstRegistered ? 'TAX INVOICE' : 'INVOICE';
+  }
 
   pw.Widget _kv(String label, String value) {
     return pw.Padding(

@@ -41,20 +41,31 @@ class BackupNudgeService {
   /// Decides whether the nudge should be shown, given the current invoice
   /// count and the staleness threshold (default 30 days).
   ///
-  /// Conditions:
+  /// Conditions (any one triggers the nudge):
   ///   (a) No backup has ever been made and the user has >= 5 invoices, OR
   ///   (b) Last backup was > 30 days ago and the user has created new
-  ///       invoices since (current count > count at last backup).
+  ///       invoices since (current count > count at last backup), OR
+  ///   (c) User has created >= 10 new invoices since the last backup
+  ///       (data-loss fear is the #1 competitor complaint — nudge proactively
+  ///       when significant new data accumulates, not just on time-based
+  ///       staleness).
   static Future<bool> shouldNudge({
     required int currentInvoiceCount,
     Duration staleness = const Duration(days: 30),
   }) async {
     final last = await lastBackupDate();
     final countAtBackup = await invoiceCountAtBackup();
+    final newSinceBackup = currentInvoiceCount - countAtBackup;
 
     if (last == null) {
       // Never backed up — nudge if user has accumulated enough data.
       return currentInvoiceCount >= 5;
+    }
+
+    // (c) Proactive nudge after every 10 new invoices — reinforces "your
+    //     data is at risk without a backup" without being naggy.
+    if (newSinceBackup >= 10) {
+      return true;
     }
 
     final age = DateTime.now().difference(last);

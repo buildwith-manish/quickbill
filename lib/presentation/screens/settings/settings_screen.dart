@@ -352,6 +352,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
 
             const SizedBox(height: 32),
+
+            // "Your Data" — surfaces the privacy claim as a tangible feature.
+            // Shows DB file path, size, last backup, and one-tap export.
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.shield_outlined,
+                    color: theme.colorScheme.primary),
+                title: const Text('Your Data'),
+                subtitle: const Text(
+                    'See where your data lives and export it anytime'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/your-data'),
+              ),
+            ),
+
+            const SizedBox(height: 32),
             const BackupSection(),
             const SizedBox(height: 32),
             _SectionHeader(

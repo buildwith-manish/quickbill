@@ -7,11 +7,11 @@ import 'package:quickbill/data/database/database.dart';
 /// creates the SeqCounters table and indexes without losing v1 data.
 void main() {
   group('Database migration', () {
-    test('fresh DB creates all tables at schemaVersion 2', () async {
+    test('fresh DB creates all tables at schemaVersion 3', () async {
       final db = AppDatabase.forTesting(NativeDatabase.memory());
 
-      // Schema version must be 2 (v1 → v2 added SeqCounters + indexes).
-      expect(db.schemaVersion, 2);
+      // Schema version must be 3 (v3 added discount/payment/documentType columns).
+      expect(db.schemaVersion, 3);
 
       // All 5 tables should exist.
       final tables = await db

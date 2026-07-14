@@ -36,7 +36,7 @@ void main() {
         bankIfsc: null,
         upiId: 'anjali@oksbi',
         logoPath: null,
-        isGstRegistered: true,
+        isGstRegistered: true, invoiceTemplate: 'minimal',
       );
 
       gst = const GstCalculation(
@@ -82,7 +82,7 @@ void main() {
         sgstAmount: 9000,
         igstAmount: 0,
         totalAmount: 118000,
-        createdAt: DateTime(2026, 7, 14),
+        documentType: 'invoice', discountType: 'flat', discountValue: 0, discountAmount: 0, amountPaid: 0, createdAt: DateTime(2026, 7, 14),
       );
 
       items = List.generate(
@@ -143,7 +143,7 @@ void main() {
         sgstAmount: 2250,
         igstAmount: 0,
         totalAmount: 29500,
-        createdAt: DateTime(2026, 7, 14),
+        documentType: 'invoice', discountType: 'flat', discountValue: 0, discountAmount: 0, amountPaid: 0, createdAt: DateTime(2026, 7, 14),
       );
 
       // 25 line items — should fit on one A4 page but exercises the
@@ -214,7 +214,7 @@ void main() {
         sgstAmount: 9000,
         igstAmount: 0,
         totalAmount: 118000,
-        createdAt: DateTime(2026, 7, 14),
+        documentType: 'invoice', discountType: 'flat', discountValue: 0, discountAmount: 0, amountPaid: 0, createdAt: DateTime(2026, 7, 14),
       );
 
       items = List.generate(
@@ -265,7 +265,7 @@ void main() {
         bankIfsc: null,
         upiId: null,
         logoPath: null,
-        isGstRegistered: false,
+        isGstRegistered: false, invoiceTemplate: 'minimal',
       );
 
       client = Client(
@@ -293,7 +293,7 @@ void main() {
         sgstAmount: 0,
         igstAmount: 0,
         totalAmount: 5000,
-        createdAt: DateTime(2026, 7, 14),
+        documentType: 'invoice', discountType: 'flat', discountValue: 0, discountAmount: 0, amountPaid: 0, createdAt: DateTime(2026, 7, 14),
       );
 
       items = [

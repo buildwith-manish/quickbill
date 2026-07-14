@@ -247,6 +247,93 @@ void main() {
       expect(numbers.contains('INV/2026-27/0010'), isTrue);
     });
   });
+  group('InvoiceNumberService quotation numbering', () {
+    test('QTN prefix produces QTN/<fy>/0001', () async {
+      await _seedClientAndProfile(db);
+
+      final qtn = await service.nextNumber(
+        at: DateTime(2026, 7, 14),
+        prefix: 'QTN',
+      );
+      expect(qtn, 'QTN/2026-27/0001');
+    });
+
+    test('INV and QTN counters are independent', () async {
+      await _seedClientAndProfile(db);
+
+      // Create an invoice (INV/2026-27/0001)
+      await repo.create(
+        invoiceNumber: await service.nextNumber(at: DateTime(2026, 7, 14)),
+        clientId: 'client-1',
+        issueDate: DateTime(2026, 7, 14),
+        placeOfSupply: '27',
+        subtotal: 1000,
+        cgstAmount: 90,
+        sgstAmount: 90,
+        igstAmount: 0,
+        totalAmount: 1180,
+        items: const [
+          InvoiceItemInput(description: 'X', quantity: 1, unitPrice: 1000, gstRatePercent: 18),
+        ],
+      );
+
+      // QTN counter should be unaffected — still 0001
+      final qtn = await service.nextNumber(
+        at: DateTime(2026, 7, 15),
+        prefix: 'QTN',
+      );
+      expect(qtn, 'QTN/2026-27/0001');
+
+      // INV counter should be at 0002
+      final inv = await service.nextNumber(at: DateTime(2026, 7, 16));
+      expect(inv, 'INV/2026-27/0002');
+    });
+
+    test('quotation conversion gets a fresh INV number', () async {
+      await _seedClientAndProfile(db);
+
+      // Create a quotation
+      final qtnNum = await service.nextNumber(
+        at: DateTime(2026, 7, 14),
+        prefix: 'QTN',
+      );
+      final quotation = await repo.create(
+        invoiceNumber: qtnNum,
+        clientId: 'client-1',
+        issueDate: DateTime(2026, 7, 14),
+        placeOfSupply: '27',
+        subtotal: 5000,
+        cgstAmount: 450,
+        sgstAmount: 450,
+        igstAmount: 0,
+        totalAmount: 5900,
+        documentType: 'quotation',
+        items: const [
+          InvoiceItemInput(description: 'Quote item', quantity: 1, unitPrice: 5000, gstRatePercent: 18),
+        ],
+      );
+
+      // Convert to invoice — should get INV/2026-27/0001
+      final invNum = await service.nextNumber(at: DateTime(2026, 7, 15));
+      expect(invNum, 'INV/2026-27/0001');
+
+      final newInvoiceId = await repo.convertQuotationToInvoice(
+        quotationId: quotation.invoice.id,
+        newInvoiceNumber: invNum,
+      );
+
+      // The new invoice should exist with documentType = 'invoice'
+      final newInvoice = await repo.byId(newInvoiceId);
+      expect(newInvoice, isNotNull);
+      expect(newInvoice!.documentType, 'invoice');
+      expect(newInvoice.invoiceNumber, 'INV/2026-27/0001');
+      // The original quotation should still exist
+      final original = await repo.byId(quotation.invoice.id);
+      expect(original, isNotNull);
+      expect(original!.documentType, 'quotation');
+    });
+  });
+
 }
 
 /// Seeds a single client + business profile so FK constraints pass on

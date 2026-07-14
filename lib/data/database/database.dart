@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -49,6 +49,16 @@ class AppDatabase extends _$AppDatabase {
             // v2: add indexes for FK columns and the seq_counters table.
             await m.createTable(seqCounters);
             await _createIndexes(m);
+          }
+          if (from < 3) {
+            // v3: discount + payment status + documentType + invoiceTemplate.
+            // All new columns have defaults so the migration is non-destructive.
+            await m.addColumn(invoices, invoices.discountType);
+            await m.addColumn(invoices, invoices.discountValue);
+            await m.addColumn(invoices, invoices.discountAmount);
+            await m.addColumn(invoices, invoices.amountPaid);
+            await m.addColumn(invoices, invoices.documentType);
+            await m.addColumn(businessProfiles, businessProfiles.invoiceTemplate);
           }
         },
         beforeOpen: (details) async {

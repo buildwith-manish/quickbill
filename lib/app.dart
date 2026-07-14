@@ -13,6 +13,7 @@ import 'presentation/screens/invoices/invoice_list_screen.dart';
 import 'presentation/screens/invoices/invoice_preview_screen.dart';
 import 'presentation/screens/onboarding/business_setup_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/settings/your_data_screen.dart';
 import 'presentation/widgets/db_corruption_guard.dart';
 import 'theme/app_theme.dart';
 
@@ -90,6 +91,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _ScaffoldWithNav(navigationShell: navigationShell);
         },
         branches: _shellBranches,
+      ),
+      GoRoute(
+        path: '/your-data',
+        name: 'your-data',
+        builder: (context, state) => const YourDataScreen(),
       ),
       GoRoute(
         path: '/clients/new',

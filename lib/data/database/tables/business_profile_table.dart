@@ -21,6 +21,10 @@ class BusinessProfiles extends Table {
   BoolColumn get isGstRegistered =>
       boolean().withDefault(const Constant(true))();
 
+  /// v3: which PDF template to use. 'minimal' (default) or 'classic'.
+  TextColumn get invoiceTemplate =>
+      text().withDefault(const Constant('minimal'))();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

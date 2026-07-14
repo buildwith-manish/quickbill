@@ -27,14 +27,18 @@ class InvoiceNumberService {
 
   /// Returns the suggested next invoice number for the FY containing [at].
   /// If [at] is null, defaults to DateTime.now().
-  Future<String> nextNumber({DateTime? at}) async {
+  ///
+  /// v3: [prefix] defaults to 'INV' for invoices. Pass 'QTN' for quotations
+  /// — they get their own counter sequence (QTN/2026-27/0001).
+  Future<String> nextNumber({DateTime? at, String prefix = 'INV'}) async {
     final now = at ?? DateTime.now();
     final fyStart = fyStartYear(now);
     final label = fyLabel(fyStart);
+    final counterKey = '$prefix-$label';
 
     // Counter-based suggestion.
     final counterRow = await (_db.select(_db.seqCounters)
-          ..where((t) => t.key.equals(label)))
+          ..where((t) => t.key.equals(counterKey)))
         .getSingleOrNull();
     final counterSeq = counterRow?.lastSeq ?? 0;
 
@@ -43,13 +47,15 @@ class InvoiceNumberService {
     final fyInvoices = await _repo.forFinancialYear(fyStart);
     int maxExisting = 0;
     for (final inv in fyInvoices) {
+      // Only count invoices matching this prefix (INV vs QTN).
+      if (!inv.invoiceNumber.startsWith('$prefix/')) continue;
       final seq = _seqFromNumber(inv.invoiceNumber);
       if (seq != null && seq > maxExisting) maxExisting = seq;
     }
 
     final next = (counterSeq > maxExisting ? counterSeq : maxExisting) + 1;
     final seqStr = next.toString().padLeft(4, '0');
-    return 'INV/$label/$seqStr';
+    return '$prefix/$label/$seqStr';
   }
 
   /// Bumps the persisted counter for [fyLabel] to at least [seq].
