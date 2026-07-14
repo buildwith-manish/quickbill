@@ -5,6 +5,10 @@ import 'package:drift/drift.dart';
 /// A client may or may not be GST-registered. The `stateCode` is required
 /// because it determines whether an invoice for this client is intra- or
 /// inter-state (and therefore CGST/SGST vs IGST).
+///
+/// Index (v2.1): `name` is indexed because the client list screen orders
+/// by name and the v2.1 search uses a SQL LIKE query on it.
+@TableIndex(name: 'idx_clients_name', columns: {#name})
 class Clients extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();

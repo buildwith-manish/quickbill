@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -6,6 +8,9 @@ import 'package:go_router/go_router.dart';
 import '../../../utils/gst_state_codes.dart';
 import '../../providers/client_providers.dart';
 import '../../widgets/empty_state.dart';
+
+/// Search debouncer duration — 300ms balances responsiveness vs. query load.
+const _searchDebounce = Duration(milliseconds: 300);
 
 class ClientListScreen extends ConsumerStatefulWidget {
   const ClientListScreen({super.key});
@@ -16,10 +21,27 @@ class ClientListScreen extends ConsumerStatefulWidget {
 
 class _ClientListScreenState extends ConsumerState<ClientListScreen> {
   String _query = '';
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String v) {
+    _debounce?.cancel();
+    _debounce = Timer(_searchDebounce, () {
+      setState(() => _query = v.trim());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final clientsAsync = ref.watch(clientListProvider);
+    // Use the search provider when there's a query, otherwise the full list.
+    final clientsAsync = _query.isEmpty
+        ? ref.watch(clientListProvider)
+        : ref.watch(clientSearchProvider(_query));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Clients')),
@@ -30,7 +52,7 @@ class _ClientListScreenState extends ConsumerState<ClientListScreen> {
             child: SearchBar(
               hintText: 'Search by name or GSTIN',
               leading: const Icon(Icons.search),
-              onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+              onChanged: _onSearchChanged,
             ),
           ),
           Expanded(
@@ -38,15 +60,7 @@ class _ClientListScreenState extends ConsumerState<ClientListScreen> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Failed to load: $e')),
               data: (clients) {
-                final filtered = _query.isEmpty
-                    ? clients
-                    : clients
-                        .where((c) =>
-                            c.name.toLowerCase().contains(_query) ||
-                            (c.gstin ?? '').toLowerCase().contains(_query))
-                        .toList();
-
-                if (filtered.isEmpty) {
+                if (clients.isEmpty) {
                   return EmptyState(
                     icon: Icons.people_outline,
                     title: _query.isEmpty ? 'No clients yet' : 'No matches',
@@ -64,10 +78,10 @@ class _ClientListScreenState extends ConsumerState<ClientListScreen> {
                 return ListView.separated(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  itemCount: filtered.length,
+                  itemCount: clients.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 6),
                   itemBuilder: (context, i) {
-                    final c = filtered[i];
+                    final c = clients[i];
                     return Slidable(
                       endActionPane: ActionPane(
                         motion: const BehindMotion(),

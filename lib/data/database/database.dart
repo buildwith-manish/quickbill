@@ -32,23 +32,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
+          // createAll() now handles indexes too — the @TableIndex annotations
+          // on Invoices, Clients, and InvoiceItems generate them automatically.
           await m.createAll();
-          // Also create indexes on fresh installs — onCreate only runs
-          // createAll() which doesn't include custom indexes defined in
-          // onUpgrade. We want fresh installs to have the same indexes
-          // as upgraded ones.
-          await _createIndexes(m);
         },
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             // v2: add indexes for FK columns and the seq_counters table.
             await m.createTable(seqCounters);
-            await _createIndexes(m);
+            await _createLegacyIndexes(m);
           }
           if (from < 3) {
             // v3: discount + payment status + documentType + invoiceTemplate.
@@ -60,27 +57,45 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(invoices, invoices.documentType);
             await m.addColumn(businessProfiles, businessProfiles.invoiceTemplate);
           }
+          if (from < 4) {
+            // v2.1: add missing indexes for status + clients.name.
+            // The @TableIndex annotations handle fresh installs; this block
+            // handles upgrading users who already have a v1/v2/v3 DB.
+            // Use IF NOT EXISTS because some indexes may already exist from v2.
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices (status)',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_clients_name ON clients (name)',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice_id ON invoice_items (invoice_id)',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices (client_id)',
+            );
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_invoices_issue_date ON invoices (issue_date)',
+            );
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
       );
 
-  /// Creates all v2 indexes. Called from both onCreate (fresh install)
-  /// and onUpgrade (v1→v2 upgrade).
-  Future<void> _createIndexes(Migrator m) async {
-    await m.createIndex(Index(
-      'idx_invoices_client_id',
-      'CREATE INDEX idx_invoices_client_id ON invoices (client_id)',
-    ));
-    await m.createIndex(Index(
-      'idx_invoices_issue_date',
-      'CREATE INDEX idx_invoices_issue_date ON invoices (issue_date)',
-    ));
-    await m.createIndex(Index(
-      'idx_invoice_items_invoice_id',
-      'CREATE INDEX idx_invoice_items_invoice_id ON invoice_items (invoice_id)',
-    ));
+  /// Legacy v2 indexes — only used when upgrading from v1 directly.
+  /// Kept for backward compat with the earliest adopters.
+  Future<void> _createLegacyIndexes(Migrator m) async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices (client_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_invoices_issue_date ON invoices (issue_date)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice_id ON invoice_items (invoice_id)',
+    );
   }
 
   /// Wipe all data — used by Settings → "Reset all data". Cascades through

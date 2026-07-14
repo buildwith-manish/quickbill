@@ -17,6 +17,14 @@ import 'clients_table.dart';
 ///   - `documentType` ('invoice' | 'quotation') — reuses the same table for
 ///     quotations. Quotations get a QTN/ prefix and can be converted to
 ///     invoices via a clone-with-new-number action.
+///
+/// Indexes (v2.1): `clientId`, `issueDate`, `status` are indexed because
+/// they're used in WHERE clauses by the repository. `clientId` + `issueDate`
+/// were added in v2's migration; `status` is new — the invoice list screen
+/// filters on it heavily.
+@TableIndex(name: 'idx_invoices_status', columns: {#status})
+@TableIndex(name: 'idx_invoices_client_id', columns: {#clientId})
+@TableIndex(name: 'idx_invoices_issue_date', columns: {#issueDate})
 class Invoices extends Table {
   TextColumn get id => text()();
   TextColumn get invoiceNumber => text()();

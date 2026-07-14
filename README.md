@@ -126,6 +126,24 @@ No cloud sync, no auth, no multi-currency, no recurring invoices, no client port
 
 ---
 
+## Pricing philosophy
+
+Invory is currently free with no subscription. These principles are documented now — before any monetization is considered — so they can't quietly erode later.
+
+1. **What you see is what you get.** Any feature shown in marketing/store screenshots must be usable in the free tier, or clearly marked "Pro" in the screenshot itself — never revealed as locked only after install.
+
+2. **No feature becomes paid retroactively.** No feature that was free becomes paid in a later update for existing users. If you downloaded Invory when PDF export was free, PDF export stays free for you forever.
+
+3. **If a paid tier is ever introduced**, it's a flat one-time or transparent monthly price. No "credits," no "wallet recharge," no consumption-based unlocks for core billing features. PDF export, backup, and GST calculation stay free forever.
+
+4. **No sales calls, no upsell nudges** beyond a single optional "Support development" screen in Settings. The app never interrupts your billing flow to ask for money.
+
+5. **Your data is never held hostage behind a paywall.** Even if a paid tier exists, the free tier always includes full export/backup — you can take your data with you at any time, regardless of payment status.
+
+These principles are a direct response to the pricing complaints driving users away from competitor invoicing apps. They are a product decision, not a marketing one.
+
+---
+
 ## License
 
 Proprietary — for personal use of the freelancer who deploys it.

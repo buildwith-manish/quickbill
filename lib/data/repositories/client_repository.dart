@@ -15,6 +15,22 @@ class ClientRepository {
         .get();
   }
 
+  /// SQL-level search by name or GSTIN. Uses LIKE with wildcards on both
+  /// sides for substring matching. Case-insensitive by default in SQLite
+  /// for ASCII text.
+  ///
+  /// At 500+ clients, this is dramatically faster than loading all rows
+  /// and filtering in-memory on every keystroke. The caller should debounce
+  /// calls (e.g. 300ms) to avoid excessive queries.
+  Future<List<Client>> search(String query) async {
+    final q = '%${query.trim()}%';
+    final results = (_db.select(_db.clients)
+          ..where((t) => t.name.like(q) | t.gstin.like(q))
+          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .get();
+    return results;
+  }
+
   Future<Client?> byId(String id) async {
     return (_db.select(_db.clients)..where((t) => t.id.equals(id)))
         .getSingleOrNull();

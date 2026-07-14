@@ -6,6 +6,10 @@ import 'invoices_table.dart';
 ///
 /// `gstRatePercent` is constrained by the UI to one of {0, 5, 12, 18, 28}.
 /// `lineTotal` = quantity × unitPrice (pre-tax), persisted for history.
+///
+/// Index (v2.1): `invoiceId` is indexed because every invoice preview
+/// queries items by it.
+@TableIndex(name: 'idx_invoice_items_invoice_id', columns: {#invoiceId})
 class InvoiceItems extends Table {
   TextColumn get id => text()();
   TextColumn get invoiceId => text().references(Invoices, #id)();
