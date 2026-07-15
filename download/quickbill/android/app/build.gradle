@@ -1,0 +1,86 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+// Load keystore config from a properties file (key.properties) if present.
+// The release workflow creates this file from GitHub secrets at build time.
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace = "com.quickbill.quickbill"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // Required by flutter_local_notifications — uses Java 8 time APIs.
+        coreLibraryDesugaringEnabled = true
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        applicationId = "com.quickbill.quickbill"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+
+        // Strip x86 / x86_64 ABIs from release builds — these are emulator-only
+        // and bloat the APK by ~40MB per ABI. Debug builds still include all
+        // ABIs so the APK runs on iOS simulators and desktop emulators.
+        ndk {
+            if (project.hasProperty('release-abis')) {
+                abiFilters 'arm64-v8a', 'armeabi-v7a'
+            }
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (keystoreProperties['storeFile'] != null) {
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+                storeFile = file(keystoreProperties['storeFile'])
+                storePassword = keystoreProperties['storePassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // Release builds MUST be signed with a real keystore — no debug
+            // fallback. The release workflow provides key.properties from
+            // GitHub secrets. Local release builds without a keystore will
+            // fail with a clear Gradle error, which is the correct behavior
+            // (never ship a debug-signed release).
+            signingConfig = keystoreProperties['storeFile'] != null
+                ? signingConfigs.release
+                : null
+
+            // Strip debug symbols and shrink the binary.
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    // Required for flutter_local_notifications (Java 8 time API desugaring).
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
+}
